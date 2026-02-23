@@ -82,41 +82,43 @@ export default function ClassDetailModal({ entry, onClose }: ClassDetailModalPro
                     </div>
                 </div>
 
-                <div className="w-full flex-1 flex flex-col px-4 py-5 gap-4">
-                    <CommonNotes />
-                    {teacherSettingData ? (
-                        <div className="w-full flex flex-col">
-                            <TeacherSettingCard data={teacherSettingData} />
-                        </div>
-                    ) : (
-                        <div className="w-full flex items-center justify-center h-20 text-gray-3">
-                            세팅 정보가 없는 강사님입니다!
-                        </div>
-                    )}
-                </div>
-
-                <div className="w-full px-4 flex flex-col gap-2">
-                    <h3 className="text-16 font-bold text-gray-4">문구 복사 버튼</h3>
-                    <div className="w-full flex items-center gap-3">
-                        <Button
-                            size="sm"
-                            label="미입실자 명단"
-                            onClick={() => handleCopyClick(`${defaultComment} 미입실자 명단입니다`)}
-                        />
-                        <Button
-                            size="sm"
-                            label="라이브러리 배부"
-                            onClick={() => handleCopyClick(`${defaultComment} 미입실자 라이브러리 배부하겠습니다`)}
-                        />
-                        <Button
-                            size="sm"
-                            label="수업 종료"
-                            onClick={() =>
-                                handleCopyClick(`${defaultComment} 수업 종료되어 학생들 라이브러리로 올라갑니다`)
-                            }
-                        />
+                <section className="w-full h-fll flex flex-col overflow-y-auto">
+                    <div className="w-full flex-1 flex flex-col px-4 py-5 gap-4">
+                        <CommonNotes />
+                        {teacherSettingData ? (
+                            <div className="w-full flex flex-col">
+                                <TeacherSettingCard data={teacherSettingData} />
+                            </div>
+                        ) : (
+                            <div className="w-full flex items-center justify-center h-20 text-gray-3">
+                                세팅 정보가 없는 강사님입니다!
+                            </div>
+                        )}
                     </div>
-                </div>
+
+                    <div className="w-full px-4 flex flex-col gap-2">
+                        <h3 className="text-16 font-bold text-gray-4">문구 복사 버튼</h3>
+                        <div className="w-full flex items-center gap-3">
+                            <Button
+                                size="sm"
+                                label="미입실자 명단"
+                                onClick={() => handleCopyClick(`${defaultComment} 미입실자 명단입니다`)}
+                            />
+                            <Button
+                                size="sm"
+                                label="라이브러리 배부"
+                                onClick={() => handleCopyClick(`${defaultComment} 미입실자 라이브러리 배부하겠습니다`)}
+                            />
+                            <Button
+                                size="sm"
+                                label="수업 종료"
+                                onClick={() =>
+                                    handleCopyClick(`${defaultComment} 수업 종료되어 학생들 라이브러리로 올라갑니다`)
+                                }
+                            />
+                        </div>
+                    </div>
+                </section>
 
                 {/* 닫기 버튼 */}
                 <button

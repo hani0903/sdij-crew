@@ -224,6 +224,7 @@ function TimeTablePage() {
                 data={TUESDAY_DATA}
                 periods={[currentPeriod]}
                 classrooms={existingClassrooms}
+                onEntryClick={setSelectedEntry}
             />
         );
     } else {
