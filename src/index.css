@@ -1,0 +1,102 @@
+/*
+  ┌─────────────────────────────────────────────────────────────┐
+  │  [시니어 관점] 왜 이 파일이 중요한가?                            │
+  │                                                             │
+  │  디자인 토큰(Design Token)이란 "색상, 폰트, 간격 등 디자인의    │
+  │  기준값"을 코드로 정의한 것"이다.                                │
+  │                                                             │
+  │  나쁜 예: 컴포넌트마다 color: #5d5fef 를 직접 입력             │
+  │  좋은 예: 여기서 한 번 정의하고 bg-point 로 어디서나 사용        │
+  │                                                             │
+  │  한 곳에서만 관리하면 나중에 색상이 바뀌어도 여기 한 줄만 수정.  │
+  └─────────────────────────────────────────────────────────────┘
+*/
+
+/* Tailwind v4 진입점. v3의 @tailwind base/components/utilities 를 대체함 */
+@import 'tailwindcss';
+
+/* 프리텐다드 폰트 CDN. 실제 서비스에서는 로컬 파일로 교체 권장 (성능) */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('/src/assets/fonts/PretendardVariable.woff2') format('woff2');
+    font-weight: 100 900;
+    font-display: swap;
+}
+/*
+  @theme 블록: Tailwind v4의 핵심.
+  여기서 정의한 CSS 변수가 자동으로 Tailwind 유틸리티 클래스가 된다.
+
+  규칙: CSS 변수 이름 → Tailwind 클래스 이름
+  --color-point     → bg-point, text-point, border-point
+  --font-pretendard → font-pretendard
+  --text-14         → text-14
+*/
+@theme {
+    /* ─── 색상 ─────────────────────────────────────────── */
+    --color-black: #000000;
+    --color-gray-1: #f5f5f5; /* 가장 밝음 - 배경, hover 등 */
+    --color-gray-2: #dbdbdb; /* 비활성 UI, 구분선 */
+    --color-gray-3: #aeaeae; /* placeholder, 보조 텍스트 */
+    --color-gray-4: #686868; /* 서브 텍스트 */
+    --color-point: #5d5fef; /* 브랜드 강조색 */
+
+    /* ─── 폰트 패밀리 ────────────────────────────────────── */
+    --font-pretendard: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* ─── 폰트 크기 + 줄 높이 ──────────────────────────────
+     [주의] 줄 높이 = 폰트 크기 (line-height: 1) 로 설정.
+     이 방식은 디자인 의도이지만 실제 글자가 잘릴 수 있어
+     실제 사용 시 1.2~1.4 정도를 권장함.
+     형식: --text-{크기}--line-height 로 줄 높이를 함께 지정
+  ─────────────────────────────────────────────────────── */
+    --text-12: 0.75rem; /* 12px */
+    --text-12--line-height: 0.75rem;
+
+    --text-14: 0.875rem; /* 14px */
+    --text-14--line-height: 0.875rem;
+
+    --text-20: 1.25rem; /* 20px */
+    --text-20--line-height: 1.25rem;
+
+    --text-22: 1.375rem; /* 22px */
+    --text-22--line-height: 1.375rem;
+
+    --text-30: 1.875rem; /* 30px */
+    --text-30--line-height: 1.875rem;
+
+    /* ─── 폰트 굵기 ─────────────────────────────────────────
+     --font-weight-{이름} → font-{이름} 클래스로 사용
+     예: font-light, font-regular, font-medium, font-semibold, font-bold
+  ─────────────────────────────────────────────────────── */
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+}
+
+/*
+  @layer base: 모든 요소에 기본으로 적용할 스타일.
+  Tailwind의 reset 위에 프로젝트 기본값을 쌓는다.
+*/
+@layer base {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        /* CSS 변수를 직접 참조. @theme 에서 정의한 값을 재사용 */
+        font-family: var(--font-pretendard);
+        color: var(--color-black);
+        background-color: #ffffff;
+
+        /* 폰트 렌더링 개선 */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+}
