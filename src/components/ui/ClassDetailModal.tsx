@@ -51,10 +51,13 @@ export default function ClassDetailModal({ entry, onClose }: ClassDetailModalPro
 
     return (
         /* 딤 배경. 클릭하면 닫힘 */
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 overflow-hidden"
+            onClick={onClose}
+        >
             {/* 모달 본체. 클릭 이벤트가 배경으로 전파되지 않도록 stopPropagation */}
             <div
-                className="relative w-full h-[90%] max-w-sm mx-4 rounded-2xl bg-white shadow-xl overflow-hidden"
+                className="relative flex flex-col w-full h-[90%] max-w-sm mx-4 rounded-2xl bg-white shadow-xl overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="p-6 flex flex-col gap-4 bg-point/10">
@@ -82,8 +85,8 @@ export default function ClassDetailModal({ entry, onClose }: ClassDetailModalPro
                     </div>
                 </div>
 
-                <section className="w-full h-fll flex flex-col overflow-y-auto">
-                    <div className="w-full flex-1 flex flex-col px-4 py-5 gap-4">
+                <section className="flex-1 min-h-0 w-full flex flex-col px-4 py-5 pb-15  overflow-y-auto gap-5">
+                    <div className="w-full flex-1 flex flex-col gap-4">
                         <CommonNotes />
                         {teacherSettingData ? (
                             <div className="w-full flex flex-col">
@@ -96,9 +99,14 @@ export default function ClassDetailModal({ entry, onClose }: ClassDetailModalPro
                         )}
                     </div>
 
-                    <div className="w-full px-4 flex flex-col gap-2">
+                    <div className="w-full flex flex-col gap-2">
                         <h3 className="text-16 font-bold text-gray-4">문구 복사 버튼</h3>
-                        <div className="w-full flex items-center gap-3">
+                        <div className="w-full grid gap-2 grid-cols-2 grid-rows-2">
+                            <Button
+                                size="sm"
+                                label="입실 자료"
+                                onClick={() => handleCopyClick(`${defaultComment} 입실자료입니다`)}
+                            />
                             <Button
                                 size="sm"
                                 label="미입실자 명단"
