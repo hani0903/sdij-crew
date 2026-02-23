@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import Timetable, { type ClassEntry } from '../components/ui/Timetable';
+import ClassDetailModal from '../components/ui/ClassDetailModal';
+import CalendarIcon from '../assets/icons/calendar.svg?react';
+import { getCurrentPeriod } from '../utils/getCurrentPeriod';
 
 const TUESDAY_DATA: ClassEntry[] = [
     {
@@ -196,7 +199,8 @@ const TUESDAY_DATA: ClassEntry[] = [
 
 function TimeTablePage() {
     const [selectedType, setSelectedType] = useState<'all' | 'current'>('all');
-    const currentPeriod = '2교시';
+    const [selectedEntry, setSelectedEntry] = useState<ClassEntry | null>(null);
+    const currentPeriod = getCurrentPeriod();
 
     const classrooms = ['601호', '602호', '603호', '604호', '605호', '606호', '607호', '608호'];
 
@@ -204,23 +208,51 @@ function TimeTablePage() {
         selectedType === 'all'
             ? classrooms.filter((room) =>
                   // data(2차원 배열)를 순회하며 해당 강의실을 사용하는 수업이 있는지 확인
-                  TUESDAY_DATA.some((data) => data.room === room)
+                  TUESDAY_DATA.some((data) => data.room === room),
               )
             : classrooms.filter((room) =>
                   // data(2차원 배열)를 순회하며 해당 강의실을 사용하는 수업이 있는지 확인
-                  TUESDAY_DATA.some((data) => data.room === room && data.period === currentPeriod)
+                  TUESDAY_DATA.some((data) => data.room === room && data.period === currentPeriod),
               );
 
+    let timeTable = <></>;
+    if (selectedType === 'current') {
+        timeTable = (
+            <Timetable
+                key="current"
+                pageSize={1}
+                data={TUESDAY_DATA}
+                periods={[currentPeriod]}
+                classrooms={existingClassrooms}
+            />
+        );
+    } else {
+        timeTable = (
+            <Timetable
+                key="all"
+                data={TUESDAY_DATA}
+                periods={['1교시', '2교시', '3교시', '4교시', '5교시', '6교시']}
+                classrooms={existingClassrooms}
+                onEntryClick={setSelectedEntry}
+            />
+        );
+    }
+
     return (
-        <div className="w-full h-full flex flex-col">
-            <main className="w-full py-4 px-5 flex flex-col gap-4 xl:max-w-[1200px] xl:mx-auto">
-                <h2 className="text-20 font-semibold">화요일 시간표</h2>
-                <nav>
-                    <ul className="flex items-center gap-2 list-none text-sm font-medium text-gray-3">
+        <div className="w-full flex flex-col">
+            <header className="w-full p-4 flex flex-col gap-3 max-w-[1200px] mx-auto">
+                <h2 className="text-[18px] font-bold flex items-center gap-3">
+                    <span className=" p-1.5 bg-point/10 text-point rounded-lg flex items-center justify-center">
+                        <CalendarIcon className="size-5" />
+                    </span>
+                    화요일 시간표
+                </h2>
+                <nav className="rounded-lg bg-gray-1 w-fit overflow-hidden">
+                    <ul className=" flex items-center list-none text-sm font-medium text-gray-3">
                         <li>
                             <button
                                 onClick={() => setSelectedType('all')}
-                                className={`${selectedType === 'all' ? 'font-semibold text-point' : ''}`}
+                                className={`${selectedType === 'all' ? 'font-bold text-point cursor-pointer p-2 bg-point/10' : 'cursor-pointer p-2'}`}
                             >
                                 전체
                             </button>
@@ -228,25 +260,19 @@ function TimeTablePage() {
                         <li>
                             <button
                                 onClick={() => setSelectedType('current')}
-                                className={`${selectedType === 'current' ? 'font-semibold text-point' : ''}`}
+                                className={`${selectedType === 'current' ? 'font-bold text-point cursor-pointer bg-point/10 p-2' : 'cursor-pointer p-2'}`}
                             >
                                 이번 교시
                             </button>
                         </li>
                     </ul>
                 </nav>
-                <section className="w-full flex flex-col">
-                    <Timetable
-                        data={TUESDAY_DATA}
-                        periods={
-                            selectedType === 'all'
-                                ? ['1교시', '2교시', '3교시', '4교시', '5교시', '6교시']
-                                : [currentPeriod]
-                        }
-                        classrooms={existingClassrooms}
-                    />
-                </section>
+            </header>
+            <main className="w-full flex flex-col gap-4 xl:max-w-[1200px] xl:mx-auto">
+                <section className="w-full flex flex-col">{timeTable}</section>
             </main>
+
+            {selectedEntry && <ClassDetailModal entry={selectedEntry} onClose={() => setSelectedEntry(null)} />}
         </div>
     );
 }
