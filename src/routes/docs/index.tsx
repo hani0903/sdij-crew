@@ -35,14 +35,14 @@ function RouteComponent() {
                             to="/docs/pre-first-period-tasks"
                             className="min-h-[70px] w-full rounded-xl p-4 flex gap-4 bg-[#F8FAFC] border border-[#F1F5F9] justify-between"
                         >
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-3 w-fit">
                                 <span className="text-[#0F172A] font-bold text-14">1교시 시작 전 업무</span>
                                 <p className="inline-block break-keep text-[#64748B] text-12">
                                     1교시 수업 전 해야할 일들을 정리한 문서입니다.
                                 </p>
                             </div>
-                            <button className="whitespace-nowrap flex items-center gap-2 cursor-pointer hover:text-point/90 active:text-point/90 text-12 text-point font-semibold">
-                                문서 읽으러 가기
+                            <button className=" flex items-center gap-2 cursor-pointer hover:text-point/90 active:text-point/90 text-12 text-point font-semibold">
+                                <span className="whitespace-nowrap">문서 읽으러 가기</span>
                                 <RightArrowIcon />
                             </button>
                         </Link>
