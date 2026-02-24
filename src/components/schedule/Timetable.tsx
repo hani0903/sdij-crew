@@ -101,7 +101,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
       visibleClassrooms 도 자동으로 다시 계산된다. (상태 불필요)
     */
     const visibleClassrooms = classrooms.filter((classroom) =>
-        visiblePeriods.some((period) => cellMap.has(`${period}::${classroom}`))
+        visiblePeriods.some((period) => cellMap.has(`${period}::${classroom}`)),
     );
 
     return (
@@ -115,7 +115,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                             {visibleClassrooms.map((classroom) => (
                                 <th
                                     key={classroom}
-                                    className="border-b border-r border-gray-2 bg-[#F1F5F9] px-3 py-4 text-center font-pretendard text-14 font-semibold text-black last:border-r-0"
+                                    className="border-b border-r border-gray-2 bg-[#F1F5F9] py-2 text-center font-pretendard text-14 font-semibold text-black last:border-r-0"
                                 >
                                     <span className="text-nowrap text-[#475569]">{classroom}</span>
                                 </th>
@@ -129,7 +129,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                             <tr key={period} className="group">
                                 {/* 교시 헤더 */}
                                 <td className="border-b border-r border-gray-2 bg-white px-3 py-4 text-center font-pretendard text-14 font-medium text-gray-4 group-last:border-b-0">
-                                    <div className="flex flex-col items-center gap-2 px-2 text-center">
+                                    <div className="flex flex-col items-center gap-1  text-center">
                                         <span className="text-nowrap font-bold text-sm text-point">{period}</span>
                                         <span className="text-xs font-regular text-[#64748B]">
                                             {getPeriodTime(period)}
@@ -152,7 +152,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                                             {entry ? (
                                                 <div
                                                     onClick={() => onEntryClick?.(entry)}
-                                                    className="relative flex flex-col gap-2 min-w-[110px] h-[130px] overflow-hidden rounded-lg bg-point/10 p-2 px-3 cursor-pointer hover:brightness-95 transition-[filter] duration-150"
+                                                    className="relative flex flex-col gap-2 w-[90px] h-[95px] overflow-hidden rounded-lg bg-point/10 p-2 px-3 cursor-pointer hover:brightness-95 transition-[filter] duration-150"
                                                 >
                                                     <div className="absolute h-full w-1.5 bg-point left-0 top-0" />
                                                     {/* 강사명 */}

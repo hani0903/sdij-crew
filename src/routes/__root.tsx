@@ -14,7 +14,7 @@ function RootComponent() {
             <div className="w-screen h-dvh bg-gray-200 flex justify-center">
                 <div className="w-full bg-white h-full flex flex-col">
                     <Header title="시대인재" />
-                    <div className="w-full flex-col flex flex-1">
+                    <div className="w-full flex-col flex flex-1 min-h-0 overflow-y-auto">
                         <Outlet />
                     </div>
                     <BottomNavigation />
