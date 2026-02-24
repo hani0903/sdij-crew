@@ -1,6 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import CheckIcon from './../../assets/icons/check.svg?react';
 import BreakFastImg from './../../assets/images/breakfast-setting.jpg';
+import LeftArrowIcon from './../../assets/icons/ic-left-arrow.svg?react';
 
 export const Route = createFileRoute('/docs/pre-first-period-tasks')({
     component: RouteComponent,
@@ -18,6 +19,7 @@ function scrollToSection(id: string) {
 }
 
 function RouteComponent() {
+    const navigate = useNavigate();
     return (
         <main className="w-full h-full flex flex-col">
             {/* <ul className="w-full flex items-center p-2">
@@ -39,7 +41,12 @@ function RouteComponent() {
             </ul> */}
             <section className="w-full flex flex-col p-5 flex-1 gap-6">
                 <div className="w-full flex flex-col gap-5">
-                    <h2 className="font-bold text-3xl">1교시 시작 전 할 일</h2>
+                    <h2 className="font-bold text-3xl flex items-center gap-5">
+                        <button type="button" onClick={() => navigate({ to: '..' })} className="cursor-pointer">
+                            <LeftArrowIcon className="size-5" />
+                        </button>
+                        1교시 시작 전 할 일
+                    </h2>
 
                     <p className="text-[#475569] break-keep">
                         1교시 입실 시작 시간인 8시 10분 이전에 끝내야 할 일들입니다.
