@@ -41,7 +41,7 @@ function RouteComponent() {
                                     1교시 수업 전 해야할 일들을 정리한 문서입니다.
                                 </p>
                             </div>
-                            <button className="flex items-center gap-2 cursor-pointer hover:text-point/90 active:text-point/90 text-12 text-point font-semibold">
+                            <button className="whitespace-nowrap flex items-center gap-2 cursor-pointer hover:text-point/90 active:text-point/90 text-12 text-point font-semibold">
                                 문서 읽으러 가기
                                 <RightArrowIcon />
                             </button>
