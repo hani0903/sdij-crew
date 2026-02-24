@@ -10,11 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as RandomRouteImport } from './routes/random'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsIndexRouteImport } from './routes/docs/index'
+import { Route as DocsPreFirstPeriodTasksRouteImport } from './routes/docs/pre-first-period-tasks'
 
 const ScheduleRoute = ScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RandomRoute = RandomRouteImport.update({
+  id: '/random',
+  path: '/random',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,31 +30,64 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/docs/',
+  path: '/docs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsPreFirstPeriodTasksRoute = DocsPreFirstPeriodTasksRouteImport.update({
+  id: '/docs/pre-first-period-tasks',
+  path: '/docs/pre-first-period-tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/random': typeof RandomRoute
   '/schedule': typeof ScheduleRoute
+  '/docs/pre-first-period-tasks': typeof DocsPreFirstPeriodTasksRoute
+  '/docs/': typeof DocsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/random': typeof RandomRoute
   '/schedule': typeof ScheduleRoute
+  '/docs/pre-first-period-tasks': typeof DocsPreFirstPeriodTasksRoute
+  '/docs': typeof DocsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/random': typeof RandomRoute
   '/schedule': typeof ScheduleRoute
+  '/docs/pre-first-period-tasks': typeof DocsPreFirstPeriodTasksRoute
+  '/docs/': typeof DocsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/schedule'
+  fullPaths:
+    | '/'
+    | '/random'
+    | '/schedule'
+    | '/docs/pre-first-period-tasks'
+    | '/docs/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/schedule'
-  id: '__root__' | '/' | '/schedule'
+  to: '/' | '/random' | '/schedule' | '/docs/pre-first-period-tasks' | '/docs'
+  id:
+    | '__root__'
+    | '/'
+    | '/random'
+    | '/schedule'
+    | '/docs/pre-first-period-tasks'
+    | '/docs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  RandomRoute: typeof RandomRoute
   ScheduleRoute: typeof ScheduleRoute
+  DocsPreFirstPeriodTasksRoute: typeof DocsPreFirstPeriodTasksRoute
+  DocsIndexRoute: typeof DocsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +99,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScheduleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/random': {
+      id: '/random'
+      path: '/random'
+      fullPath: '/random'
+      preLoaderRoute: typeof RandomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -65,12 +113,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/': {
+      id: '/docs/'
+      path: '/docs'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/pre-first-period-tasks': {
+      id: '/docs/pre-first-period-tasks'
+      path: '/docs/pre-first-period-tasks'
+      fullPath: '/docs/pre-first-period-tasks'
+      preLoaderRoute: typeof DocsPreFirstPeriodTasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  RandomRoute: RandomRoute,
   ScheduleRoute: ScheduleRoute,
+  DocsPreFirstPeriodTasksRoute: DocsPreFirstPeriodTasksRoute,
+  DocsIndexRoute: DocsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

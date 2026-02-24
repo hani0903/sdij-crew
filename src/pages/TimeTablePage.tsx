@@ -1,9 +1,17 @@
 import { useState } from 'react';
 import Timetable, { type ClassEntry } from '../components/schedule/Timetable';
 import ClassDetailModal from '../components/schedule/ClassDetailModal';
-import CalendarIcon from '../assets/icons/calendar.svg?react';
 import { getCurrentPeriod } from '../utils/getCurrentPeriod';
 import CLASS_ROOMS from '../constants/classes';
+import PERIOD from '../constants/period';
+import { SegmentedControl } from '../components/ui/SegmentControl';
+import getCurrentWeekDays from '../utils/getCurrentWeekday';
+import WeekDayBar from '../components/schedule/WeekDayBar';
+
+const TAB_OPTIONS = [
+    { label: '전체', value: 'all' as const },
+    { label: '이번 교시', value: 'current' as const },
+];
 
 const TUESDAY_DATA: ClassEntry[] = [
     {
@@ -199,9 +207,15 @@ const TUESDAY_DATA: ClassEntry[] = [
 ];
 
 function TimeTablePage() {
+    /** 시간표 형태 */
     const [selectedType, setSelectedType] = useState<'all' | 'current'>('all');
+
+    /** 선택된 요일 */
+    const [selectedWeekday, setSelectedWeekday] = useState(getCurrentWeekDays);
+
+    /** 열린 모달 */
     const [selectedEntry, setSelectedEntry] = useState<ClassEntry | null>(null);
-    const currentPeriod = getCurrentPeriod();
+    const currentPeriod = getCurrentPeriod(); // 현재 교시 갖고 오기
 
     const existingClassrooms =
         selectedType === 'all'
@@ -231,7 +245,7 @@ function TimeTablePage() {
             <Timetable
                 key="all"
                 data={TUESDAY_DATA}
-                periods={['1교시', '2교시', '3교시', '4교시', '5교시', '6교시']}
+                periods={PERIOD}
                 classrooms={existingClassrooms}
                 onEntryClick={setSelectedEntry}
             />
@@ -239,41 +253,44 @@ function TimeTablePage() {
     }
 
     return (
-        <div className="w-full flex flex-col">
-            <header className="w-full p-4 flex flex-col gap-3 max-w-[1200px] mx-auto">
-                <h2 className="text-[18px] font-bold flex items-center gap-3">
-                    <span className=" p-1.5 bg-point/10 text-point rounded-lg flex items-center justify-center">
-                        <CalendarIcon className="size-5" />
-                    </span>
-                    화요일 시간표
-                </h2>
-                <nav className="rounded-lg bg-gray-1 w-fit overflow-hidden">
-                    <ul className=" flex items-center list-none text-sm font-medium text-gray-3">
-                        <li>
-                            <button
-                                onClick={() => setSelectedType('all')}
-                                className={`${selectedType === 'all' ? 'font-bold text-point cursor-pointer p-2 bg-point/10' : 'cursor-pointer p-2'}`}
-                            >
-                                전체
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                onClick={() => setSelectedType('current')}
-                                className={`${selectedType === 'current' ? 'font-bold text-point cursor-pointer bg-point/10 p-2' : 'cursor-pointer p-2'}`}
-                            >
-                                이번 교시
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
+        <section className="w-full flex flex-col py-4">
+            <header className="w-full flex flex-col gap-3 max-w-[1200px] mx-auto">
+                <div className="w-full px-4">
+                    <SegmentedControl
+                        options={TAB_OPTIONS}
+                        selectedValue={selectedType}
+                        onChange={(value) => setSelectedType(value)}
+                    />
+                </div>
+                {/* <ul className="w-full flex items-center justify-center transition-all duration-200 border-b-2 border-[#E2E8F0] px-2">
+                    {getWeekDays().map((weekday) =>
+                        ['토', '일'].includes(weekday.weekday) ? (
+                            <li className="relative flex flex-col gap-2 p-4 text-[#94A3B8] text-12 font-semibold items-center flex-1">
+                                {weekday.isToday && (
+                                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 size-1 bg-red-500 rounded-full"></span>
+                                )}
+                                <span className="inline-block">{weekday.weekday}</span>
+                                <span className="text-14">{weekday.dayNumber}</span>
+                            </li>
+                        ) : (
+                            <li className="relative flex flex-col gap-2 p-4 text-[#0F172A] text-12 font-semibold items-center flex-1">
+                                {weekday.isToday && (
+                                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 size-1 bg-red-500 rounded-full"></span>
+                                )}
+                                <span className="inline-block">{weekday.weekday}</span>
+                                <span className="text-14">{weekday.dayNumber}</span>
+                            </li>
+                        ),
+                    )}
+                </ul> */}
+                <WeekDayBar onSelectWeekday={setSelectedWeekday} selectedWeekday={selectedWeekday} />
             </header>
             <main className="w-full flex flex-col gap-4 xl:max-w-[1200px] xl:mx-auto">
                 <section className="w-full flex flex-col">{timeTable}</section>
             </main>
 
             {selectedEntry && <ClassDetailModal entry={selectedEntry} onClose={() => setSelectedEntry(null)} />}
-        </div>
+        </section>
     );
 }
 
