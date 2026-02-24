@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import Timetable, { type ClassEntry } from '../components/ui/Timetable';
-import ClassDetailModal from '../components/ui/ClassDetailModal';
+import Timetable, { type ClassEntry } from '../components/schedule/Timetable';
+import ClassDetailModal from '../components/schedule/ClassDetailModal';
 import CalendarIcon from '../assets/icons/calendar.svg?react';
 import { getCurrentPeriod } from '../utils/getCurrentPeriod';
+import CLASS_ROOMS from '../constants/classes';
 
 const TUESDAY_DATA: ClassEntry[] = [
     {
@@ -202,15 +203,13 @@ function TimeTablePage() {
     const [selectedEntry, setSelectedEntry] = useState<ClassEntry | null>(null);
     const currentPeriod = getCurrentPeriod();
 
-    const classrooms = ['601호', '602호', '603호', '604호', '605호', '606호', '607호', '608호'];
-
     const existingClassrooms =
         selectedType === 'all'
-            ? classrooms.filter((room) =>
+            ? CLASS_ROOMS.filter((room) =>
                   // data(2차원 배열)를 순회하며 해당 강의실을 사용하는 수업이 있는지 확인
                   TUESDAY_DATA.some((data) => data.room === room),
               )
-            : classrooms.filter((room) =>
+            : CLASS_ROOMS.filter((room) =>
                   // data(2차원 배열)를 순회하며 해당 강의실을 사용하는 수업이 있는지 확인
                   TUESDAY_DATA.some((data) => data.room === room && data.period === currentPeriod),
               );

@@ -1,5 +1,5 @@
 import Header from './components/ui/Header';
-import Timetable, { type ClassEntry } from './components/ui/Timetable';
+import Timetable, { type ClassEntry } from './components/schedule/Timetable';
 
 const TUESDAY_DATA: ClassEntry[] = [
     {

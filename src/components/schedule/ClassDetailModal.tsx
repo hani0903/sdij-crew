@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { type ClassEntry, type ClassStatus } from './Timetable';
-import CommonNotes from '../schedule/CommonNotes';
+import CommonNotes from './CommonNotes';
 import { TEACHERS_SETTINGS_DATA } from '../../constants/teacher';
-import TeacherSettingCard from '../schedule/TeacherSettingCard';
-import Button from './Button';
+import TeacherSettingCard from './TeacherSettingCard';
+import Button from '../ui/Button';
 
 interface ClassDetailModalProps {
     entry: ClassEntry;
