@@ -32,7 +32,7 @@ function TimeTablePage() {
                 <CircularLoadingSpinner />
             </div>
         );
-    } else if (!sessions || sessions.length > 0) {
+    } else if (!sessions || sessions.length <= 0) {
         timetableContent = (
             <div className="w-full flex-1 flex flex-col items-center justify-center text-gray-3">
                 아직 데이터가 없습니다 :(
