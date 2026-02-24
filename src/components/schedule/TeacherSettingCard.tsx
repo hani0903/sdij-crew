@@ -1,5 +1,5 @@
 import { Eraser, PenTool, Mic, MonitorPlay, Info, Mail, CheckCircle2 } from 'lucide-react';
-import type { TeacherSetting } from '../../../types/teacher/teacher.type';
+import type { TeacherSetting } from '../../types/teacher/teacher.type';
 
 export default function TeacherSettingCard({ data }: { data: TeacherSetting }) {
     return (
