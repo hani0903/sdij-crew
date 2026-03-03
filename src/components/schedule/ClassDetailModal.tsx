@@ -64,8 +64,8 @@ export default function ClassDetailModal({ entry, onClose }: ClassDetailModalPro
                     {/* 헤더 */}
                     <div className="flex items-start justify-between gap-2">
                         <div className="flex flex-col gap-2">
-                            <span className="text-20 font-bold text-black flex items-baseline gap-3">
-                                <span className="text-point text-22">{entry.room}</span> {entry.teacher}
+                            <span className="text-xl font-bold text-black flex items-baseline gap-3">
+                                <span className="text-point text-[22px]">{entry.room}</span> {entry.teacher}
                             </span>
                             <span className="text-16 font-medium text-[#475569]">
                                 {entry.subject}
@@ -75,7 +75,7 @@ export default function ClassDetailModal({ entry, onClose }: ClassDetailModalPro
                         {badge && (
                             <span
                                 className={[
-                                    'shrink-0 rounded px-2 py-1 font-pretendard text-12 font-medium',
+                                    'shrink-0 rounded px-2 py-1 font-pretendard text-xs font-medium',
                                     statusBadgeClass[entry.status],
                                 ].join(' ')}
                             >

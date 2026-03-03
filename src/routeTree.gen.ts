@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as RandomRouteImport } from './routes/random'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingIndexRouteImport } from './routes/setting/index'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as DocsPreFirstPeriodTasksRouteImport } from './routes/docs/pre-first-period-tasks'
 
@@ -28,6 +29,11 @@ const RandomRoute = RandomRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingIndexRoute = SettingIndexRouteImport.update({
+  id: '/setting/',
+  path: '/setting/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsIndexRoute = DocsIndexRouteImport.update({
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof ScheduleRoute
   '/docs/pre-first-period-tasks': typeof DocsPreFirstPeriodTasksRoute
   '/docs/': typeof DocsIndexRoute
+  '/setting/': typeof SettingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/schedule': typeof ScheduleRoute
   '/docs/pre-first-period-tasks': typeof DocsPreFirstPeriodTasksRoute
   '/docs': typeof DocsIndexRoute
+  '/setting': typeof SettingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +70,7 @@ export interface FileRoutesById {
   '/schedule': typeof ScheduleRoute
   '/docs/pre-first-period-tasks': typeof DocsPreFirstPeriodTasksRoute
   '/docs/': typeof DocsIndexRoute
+  '/setting/': typeof SettingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,8 +80,15 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/docs/pre-first-period-tasks'
     | '/docs/'
+    | '/setting/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/random' | '/schedule' | '/docs/pre-first-period-tasks' | '/docs'
+  to:
+    | '/'
+    | '/random'
+    | '/schedule'
+    | '/docs/pre-first-period-tasks'
+    | '/docs'
+    | '/setting'
   id:
     | '__root__'
     | '/'
@@ -80,6 +96,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/docs/pre-first-period-tasks'
     | '/docs/'
+    | '/setting/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,6 +105,7 @@ export interface RootRouteChildren {
   ScheduleRoute: typeof ScheduleRoute
   DocsPreFirstPeriodTasksRoute: typeof DocsPreFirstPeriodTasksRoute
   DocsIndexRoute: typeof DocsIndexRoute
+  SettingIndexRoute: typeof SettingIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -113,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/setting/': {
+      id: '/setting/'
+      path: '/setting'
+      fullPath: '/setting/'
+      preLoaderRoute: typeof SettingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/docs/': {
       id: '/docs/'
       path: '/docs'
@@ -136,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScheduleRoute: ScheduleRoute,
   DocsPreFirstPeriodTasksRoute: DocsPreFirstPeriodTasksRoute,
   DocsIndexRoute: DocsIndexRoute,
+  SettingIndexRoute: SettingIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

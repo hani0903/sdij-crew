@@ -50,7 +50,7 @@ export default function Header({ title, navItems, ctaLabel, onCtaClick }: Header
         <header className="w-full border-b-1 border-gray-2 bg-white flex items-center py-5">
             <div className="flex w-full items-center justify-between px-6 gap-8">
                 {/* 좌측: 서비스 이름 */}
-                <span className="inline-block font-pretendard text-20 font-bold text-black">{title}</span>
+                <span className="inline-block font-pretendard text-xl font-bold text-black">{title}</span>
 
                 {/* 중앙: 네비게이션 메뉴 */}
                 {/*
@@ -66,7 +66,7 @@ export default function Header({ title, navItems, ctaLabel, onCtaClick }: Header
                                     <a
                                         href={item.href}
                                         className={[
-                                            'font-pretendard text-14 transition-colors duration-150 no-underline',
+                                            'font-pretendard text-sm transition-colors duration-150 no-underline',
                                             /*
                         active 여부에 따라 다른 스타일 적용.
                         삼항연산자는 조건이 단순할 때만 사용.

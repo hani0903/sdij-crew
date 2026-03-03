@@ -21,7 +21,7 @@ function WeekDayCell({
         <li
             onClick={!isWeekend ? onClick : undefined}
             className={`
-        relative flex flex-col gap-1 p-1 pb-3 text-12 font-semibold items-center flex-1
+        relative flex flex-col gap-1 p-1 pb-3 text-xs font-semibold items-center flex-1
         ${isWeekend ? 'text-[#94A3B8] cursor-default' : 'cursor-pointer'}
         ${isSelected ? 'text-point' : !isWeekend && 'text-[#0F172A]'}
       `}
@@ -30,7 +30,7 @@ function WeekDayCell({
             <span className="inline-block">{weekday}</span>
             <span
                 className={`
-          text-14 size-7 flex items-center justify-center rounded-full
+          text-sm size-7 flex items-center justify-center rounded-full
           ${isSelected ? 'bg-point text-white' : ''}
         `}
             >

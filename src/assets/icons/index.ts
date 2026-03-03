@@ -1,0 +1,10 @@
+export { default as CalendarIcon } from './calendar.svg?react';
+export { default as CheckIcon } from './check.svg?react';
+export { default as DiceIcon } from './dice.svg?react';
+export { default as DocsIcon } from './docs.svg?react';
+export { default as LeftIcon } from './ic-left-arrow.svg?react';
+export { default as SearchIcon } from './ic-search.svg?react';
+export { default as SettingIcon } from './ic-setting.svg?react';
+export { default as RightArrowIcon } from './right-arrow.svg?react';
+export { default as PlusIcon } from './ic-plus.svg?react';
+export { default as DropdownIcon } from './dropdown-arrow.svg?react';

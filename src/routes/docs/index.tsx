@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import DocsIcon from './../../assets/icons/docs.svg?react';
 import RightArrowIcon from './../../assets/icons/right-arrow.svg?react';
+import Input from '@/components/ui/Input';
 
 export const Route = createFileRoute('/docs/')({
     component: RouteComponent,
@@ -15,20 +16,17 @@ function RouteComponent() {
                 </span>
                 <p className="flex flex-col gap-1">
                     스태프 가이드
-                    <span className="text-12 text-[#64748B] font-regular">스태프가 할 일을 정리해 둔 문서입니다</span>
+                    <span className="text-xs text-[#64748B] font-regular">스태프가 할 일을 정리해 둔 문서입니다</span>
                 </p>
             </h2>
             <main className="w-full flex-1 flex flex-col">
                 <section className="w-full p-4">
-                    <input
-                        placeholder="찾고 싶은 내용을 입력하세요..."
-                        className="bg-[#F1F5F9] w-full p-4 rounded-xl placeholder:text-[#94A3B8] text-14 outline-none border-2 border-transparent focus-within:border-point/50 transition-colors"
-                    />
+                    <Input placeholder="찾고 싶은 내용을 입력하세요..." />
                 </section>
                 <section className="w-full flex flex-col px-4 flex-1 gap-4">
                     <div className="w-full flex items-center justify-between">
                         <h3 className="font-bold text-base text-[#94A3B8]">메인 문서</h3>
-                        <span className="text-point font-medium text-14">5 챕터</span>
+                        <span className="text-point font-medium text-sm">5 챕터</span>
                     </div>
                     <div className="w-full flex flex-col gap-4 flex-1">
                         <Link
@@ -36,12 +34,12 @@ function RouteComponent() {
                             className="min-h-[70px] w-full rounded-xl p-4 flex gap-4 bg-[#F8FAFC] border border-[#F1F5F9] justify-between"
                         >
                             <div className="flex flex-col gap-3 w-fit">
-                                <span className="text-[#0F172A] font-bold text-14">1교시 시작 전 업무</span>
-                                <p className="inline-block break-keep text-[#64748B] text-12">
+                                <span className="text-[#0F172A] font-bold text-sm">1교시 시작 전 업무</span>
+                                <p className="inline-block break-keep text-[#64748B] text-xs">
                                     1교시 수업 전 해야할 일들을 정리한 문서입니다.
                                 </p>
                             </div>
-                            <button className=" flex items-center gap-2 cursor-pointer hover:text-point/90 active:text-point/90 text-12 text-point font-semibold">
+                            <button className=" flex items-center gap-2 cursor-pointer hover:text-point/90 active:text-point/90 text-xs text-point font-semibold">
                                 <span className="whitespace-nowrap">문서 읽으러 가기</span>
                                 <RightArrowIcon />
                             </button>

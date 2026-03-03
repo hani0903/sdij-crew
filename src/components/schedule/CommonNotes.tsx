@@ -12,7 +12,7 @@ export default function CommonNotes() {
                 <span>❗</span> 공통 참고사항
             </h3>
 
-            <dl className="space-y-2 text-14 leading-relaxed break-keep">
+            <dl className="space-y-2 text-sm leading-relaxed break-keep">
                 {COMMON_NOTES.map((note) => (
                     <div key={note.id} className="flex gap-2">
                         <dt className="font-bold text-gray-700 shrink-0 after:content-[':']">{note.label}</dt>

@@ -32,7 +32,7 @@ function TimeTablePage() {
                 <CircularLoadingSpinner />
             </div>
         );
-    } else if (!sessions || sessions.length <= 0) {
+    } else if (!Array.isArray(sessions) || sessions.length === 0) {
         timetableContent = (
             <div className="w-full flex-1 flex flex-col items-center justify-center text-gray-3">
                 아직 데이터가 없습니다 :(
@@ -49,9 +49,9 @@ function TimeTablePage() {
                   );
 
         timetableContent = (() => {
-            if (isPending) return <div className="p-8 text-center text-gray-4 text-14">시간표를 불러오는 중...</div>;
+            if (isPending) return <div className="p-8 text-center text-gray-4 text-sm">시간표를 불러오는 중...</div>;
             if (isError)
-                return <div className="p-8 text-center text-red-400 text-14">시간표를 불러오지 못했습니다.</div>;
+                return <div className="p-8 text-center text-red-400 text-sm">시간표를 불러오지 못했습니다.</div>;
             return (
                 <Timetable
                     key={selectedType}

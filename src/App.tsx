@@ -199,7 +199,7 @@ function App() {
         <div className="w-full h-screen flex flex-col">
             <Header title="시대인재" ctaLabel="로그인" />
             <main className="w-full flex-1 py-4 px-5 flex flex-col gap-4 xl:max-w-[1200px] xl:mx-auto">
-                <h2 className="text-20 font-semibold">화요일 시간표</h2>
+                <h2 className="text-xl font-semibold">화요일 시간표</h2>
                 <nav>
                     <ul className="flex items-center gap-2 list-none">
                         <li>전체</li>

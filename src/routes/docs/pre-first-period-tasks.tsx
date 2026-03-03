@@ -24,19 +24,19 @@ function RouteComponent() {
         <main className="w-full h-full flex flex-col">
             {/* <ul className="w-full flex items-center p-2">
                 <li>
-                    <button className="p-3 font-bold text-12">1. 강의실 세팅</button>
+                    <button className="p-3 font-bold text-xs">1. 강의실 세팅</button>
                 </li>
                 <li>
-                    <button className="p-3 font-bold text-12">2. 조식 세팅</button>
+                    <button className="p-3 font-bold text-xs">2. 조식 세팅</button>
                 </li>
                 <li>
-                    <button className="p-3 font-bold text-12">3. 조그 세팅</button>
+                    <button className="p-3 font-bold text-xs">3. 조그 세팅</button>
                 </li>
                 <li>
-                    <button className="p-3 font-bold text-12">4. 현판 세팅</button>
+                    <button className="p-3 font-bold text-xs">4. 현판 세팅</button>
                 </li>
                 <li>
-                    <button className="p-3 font-bold text-12">5. 지우개 세팅</button>
+                    <button className="p-3 font-bold text-xs">5. 지우개 세팅</button>
                 </li>
             </ul> */}
             <section className="w-full flex flex-col p-5 flex-1 gap-6">
@@ -55,13 +55,13 @@ function RouteComponent() {
                     <div className="w-full flex rounded-r-lg bg-point/5">
                         <div className="h-full w-2 bg-point rounded-l-lg" />
                         <div className="flex flex-1 flex-col p-4 gap-2">
-                            <span className="text-point font-bold text-14">목차</span>
+                            <span className="text-point font-bold text-sm">목차</span>
                             <ol className="list-none space-y-1">
                                 {TOC_ITEMS.map((item, i) => (
                                     <li key={item.id}>
                                         <button
                                             onClick={() => scrollToSection(item.id)}
-                                            className="text-[#334155] font-regular text-14 hover:text-point transition-colors text-left"
+                                            className="text-[#334155] font-regular text-sm hover:text-point transition-colors text-left"
                                         >
                                             {i + 1}. {item.label}
                                         </button>
@@ -73,7 +73,7 @@ function RouteComponent() {
                 </div>
 
                 <article id="classroom-setup" className="w-full flex flex-col gap-4">
-                    <h3 className="text-[#0F172A] text-20 font-bold flex items-baseline gap-2 leading-normal">
+                    <h3 className="text-[#0F172A] text-xl font-bold flex items-baseline gap-2 leading-normal">
                         <span className="text-[#CBD5E1]">#</span> 강의실 세팅하기
                     </h3>
                     <p className="text-[#334155] text-base font-regular">
@@ -129,7 +129,7 @@ function RouteComponent() {
                 <hr className="text-[#dae0e8]" />
 
                 <article id="breakfast-setup" className="w-full flex flex-col gap-4">
-                    <h3 className="text-[#0F172A] text-20 font-bold flex items-baseline gap-2 leading-normal">
+                    <h3 className="text-[#0F172A] text-xl font-bold flex items-baseline gap-2 leading-normal">
                         <span className="text-[#CBD5E1]">#</span> 조식 세팅하기
                     </h3>
                     <ol className="text-base font-regular text-[#334155] p-4 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] list-none space-y-2">
@@ -172,7 +172,7 @@ function RouteComponent() {
                 <hr className="text-[#dae0e8]" />
 
                 <article id="jog-setup" className="w-full flex flex-col gap-4">
-                    <h3 className="text-[#0F172A] text-20 font-bold flex items-baseline gap-2 leading-normal">
+                    <h3 className="text-[#0F172A] text-xl font-bold flex items-baseline gap-2 leading-normal">
                         <span className="text-[#CBD5E1]">#</span> 조그 세팅하기
                     </h3>
                     <ul className="text-base font-regular text-[#334155] p-4 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] space-y-3">
@@ -197,7 +197,7 @@ function RouteComponent() {
                 </article>
 
                 <article id="lounge-setup" className="w-full flex flex-col gap-4">
-                    <h3 className="text-[#0F172A] text-20 font-bold flex items-baseline gap-2 leading-normal">
+                    <h3 className="text-[#0F172A] text-xl font-bold flex items-baseline gap-2 leading-normal">
                         <span className="text-[#CBD5E1]">#</span> 강사 대기실 세팅하기
                     </h3>
                     <ul className="text-base font-regular text-[#334155] p-4 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] space-y-3">

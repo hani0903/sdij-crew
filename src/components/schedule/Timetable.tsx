@@ -56,7 +56,7 @@ function StatusBadge({ status }: { status: ClassStatus }) {
     return (
         <span
             className={[
-                'inline-block rounded px-1.5 py-0.5 font-pretendard text-12 font-medium',
+                'inline-block rounded px-1.5 py-0.5 font-pretendard text-xs font-medium',
                 status === 'cancelled' ? 'bg-gray-2 text-gray-4' : 'bg-point text-white',
             ].join(' ')}
         >
@@ -115,7 +115,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                             {visibleClassrooms.map((classroom) => (
                                 <th
                                     key={classroom}
-                                    className="border-b border-r border-gray-2 bg-[#F1F5F9] py-2 text-center font-pretendard text-14 font-semibold text-black last:border-r-0"
+                                    className="border-b border-r border-gray-2 bg-[#F1F5F9] py-2 text-center font-pretendard text-sm font-semibold text-black last:border-r-0"
                                 >
                                     <span className="text-nowrap text-[#475569]">{classroom}</span>
                                 </th>
@@ -128,7 +128,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                         {visiblePeriods.map((period) => (
                             <tr key={period} className="group">
                                 {/* 교시 헤더 */}
-                                <td className="border-b border-r border-gray-2 bg-white px-3 py-4 text-center font-pretendard text-14 font-medium text-gray-4 group-last:border-b-0">
+                                <td className="border-b border-r border-gray-2 bg-white px-3 py-4 text-center font-pretendard text-sm font-medium text-gray-4 group-last:border-b-0">
                                     <div className="flex flex-col items-center gap-1  text-center">
                                         <span className="text-nowrap font-bold text-sm text-point">{period}</span>
                                         <span className="text-xs font-regular text-[#64748B]">
@@ -156,11 +156,11 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                                                 >
                                                     <div className="absolute h-full w-1.5 bg-point left-0 top-0" />
                                                     {/* 강사명 */}
-                                                    <span className="text-nowrap font-pretendard text-14 font-semibold text-black">
+                                                    <span className="text-nowrap font-pretendard text-sm font-semibold text-black">
                                                         {entry.teacher}
                                                     </span>
                                                     {/* 과목명 + 수강반 */}
-                                                    <span className="text-nowrap font-pretendard text-12 font-medium text-[#475569]">
+                                                    <span className="text-nowrap font-pretendard text-xs font-medium text-[#475569]">
                                                         {entry.subject}
                                                         {entry.group && (
                                                             <span className="ml-1 font-regular text-gray-4">
@@ -172,7 +172,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                                                     {/* 강사명 */}
 
                                                     {/* 수강 인원 */}
-                                                    <span className="inline-block mt-2 font-pretendard text-12 font-regular text-[#0F172A]">
+                                                    <span className="inline-block mt-2 font-pretendard text-xs font-regular text-[#0F172A]">
                                                         현강 {entry.inPersonCount}
                                                         {entry.onlineCount > 0 && `  · 인강 ${entry.onlineCount}`}
                                                     </span>
@@ -203,7 +203,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
             {totalPages > 1 && (
                 <button
                     onClick={() => setPage(isLastPage ? page - 1 : page + 1)}
-                    className="mt-1 flex w-full items-center justify-center gap-1 border border-gray-2 bg-white py-2 font-pretendard text-12 font-medium text-gray-4 hover:bg-gray-1 transition-colors duration-150"
+                    className="mt-1 flex w-full items-center justify-center gap-1 border border-gray-2 bg-white py-2 font-pretendard text-xs font-medium text-gray-4 hover:bg-gray-1 transition-colors duration-150"
                 >
                     {isLastPage ? (
                         <>
