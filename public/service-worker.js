@@ -19,33 +19,78 @@ const addResourcesToCache = async (resources) => {
     await cache.addAll(resources);
 };
 
-// 서비스 워커 최초 등록 시 실행되는 이벤트
 self.addEventListener('install', (event) => {
-    event.waitUntil(addResourcesToCache(urlsToCache));
+    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)));
+    self.skipWaiting(); // 캐시 완료 후 즉시 활성화
 });
 
-// 오래된 캐시 삭제
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cache) => {
-                    if (cache != CACHE_NAME) {
-                        console.log(`Deleting old cache: ${cache}`);
-                        return caches.delete(cache);
-                    }
-                }),
-            );
-        }),
+        caches
+            .keys()
+            .then((cacheNames) =>
+                Promise.all(
+                    cacheNames.map((cache) => {
+                        if (cache !== CACHE_NAME) {
+                            console.log(`Deleting old cache: ${cache}`);
+                            return caches.delete(cache);
+                        }
+                    }),
+                ),
+            )
+            .then(() => self.clients.claim()), // ← 이게 있어야 새 SW가 즉시 페이지를 제어
     );
 });
 
-// 리소스 요청 시 실행
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        // 캐시에 요청한 리소스가 존재하면 바로 응답하고, 그렇지 않으면 네트워크로 요청을 보냄
         caches.match(event.request).then((cachedResponse) => {
             return cachedResponse || fetch(event.request);
         }),
     );
+});
+
+self.addEventListener('push', (event) => {
+    if (!event.data) return;
+
+    const data = event.data.json();
+    const notification = data.notification ?? data; // FCM 포맷에 따라 다를 수 있음
+
+    const title = notification.title ?? '알림';
+    const options = {
+        body: notification.body ?? '',
+        icon: '/icons/since-192x192.png', // 알림 아이콘
+        badge: '/icons/since-128x128.png', // 안드로이드 상단바 아이콘
+        data: data.data ?? {}, // 클릭 시 전달할 커스텀 데이터
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            // 이미 열린 탭이 있으면 포커스
+            if (clientList.length > 0) {
+                return clientList[0].focus();
+            }
+            // 없으면 새 탭 열기
+            return clients.openWindow('/');
+        }),
+    );
+});
+
+firebase.initializeApp({
+    apiKey: '...',
+    projectId: '...',
+    messagingSenderId: '...',
+    appId: '...',
+});
+
+const messaging = firebase.messaging();
+messaging.onBackgroundMessage((payload) => {
+    const { title, body } = payload.notification;
+    self.registration.showNotification(title, { body });
 });

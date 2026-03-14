@@ -18,7 +18,7 @@ import BottomNavigation from '../components/ui/BottomNavigation';
 import Header from '../components/ui/Header';
 import { useAuthStore } from '@/stores/auth.store';
 import CircularLoadingSpinner from '@/components/ui/CircularLoadingSpinner';
-import * as serviceWorkerRegistration from '@/libs/ServiceWorkerRegistration';
+import { usePushNotification } from '@/hooks/usePushNotification';
 
 export const Route = createRootRoute({
     component: RootComponent,
@@ -97,6 +97,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 // ─── 루트 컴포넌트 ────────────────────────────────────────────────────────────
 
 function RootComponent() {
+    // 앱 마운트 시 푸시 알림 초기화 (권한 요청 → SW 등록 → FCM 토큰 취득)
+    usePushNotification();
+
     return (
         <QueryClientProvider client={queryClient}>
             {/* 앱 최초 마운트 시 인증 상태 초기화 */}
@@ -128,5 +131,3 @@ function RootComponent() {
         </QueryClientProvider>
     );
 }
-
-serviceWorkerRegistration.register();
