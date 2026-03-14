@@ -3,13 +3,13 @@ const urlsToCache = [
     '/',
     '/index.html',
     '/manifest.webmanifest',
-    '/icons/since-128x128.png',
-    '/icons/since-152x152.png',
+    // '/icons/since-128x128.png',
+    // '/icons/since-152x152.png',
     '/icons/since-192x192.png',
     '/icons/since-256x256.png',
     '/icons/since-512x512.png',
     // '/icon/Favicon.png',
-    '/icon/apple-touch-icon-180x180.png',
+    // '/icon/apple-touch-icon-180x180.png',
 ];
 
 // 캐시 저장 함수
