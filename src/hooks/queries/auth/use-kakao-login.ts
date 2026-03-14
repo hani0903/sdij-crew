@@ -12,7 +12,6 @@ import { useNavigate } from '@tanstack/react-router';
 import { authService } from '@/services/auth/auth.service';
 import { useAuthStore } from '@/stores/auth.store';
 import type { KakaoCallbackRequest, LoginResponse } from '@/types/auth/auth.type';
-
 export function useKakaoLogin() {
     const setToken = useAuthStore((s) => s.setToken);
     const navigate = useNavigate();
@@ -28,6 +27,8 @@ export function useKakaoLogin() {
             const redirectTo = sessionStorage.getItem('redirectAfterLogin') ?? '/';
             sessionStorage.removeItem('redirectAfterLogin');
             void navigate({ to: redirectTo });
+
+            // 앱 마운트 시 푸시 알림 초기화 (권한 요청 → SW 등록 → FCM 토큰 취득)
         },
 
         onError: (error) => {

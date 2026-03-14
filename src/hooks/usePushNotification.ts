@@ -1,36 +1,45 @@
 // ─── 푸시 알림 초기화 훅 ─────────────────────────────────────────────────────
 //
 // 역할:
-//   1. 알림 권한을 요청한다.
-//   2. Service Worker를 등록한다. (race condition 방지를 위해 await)
-//   3. SW 등록 완료 후 FCM 디바이스 토큰을 취득한다.
-//   4. (TODO) 취득한 토큰을 서버에 전송한다.
+//   1. 인증 상태(status)를 구독하여 'authenticated'로 전환될 때 자동으로 초기화.
+//   2. 알림 권한을 요청한다.
+//   3. Service Worker를 등록한다. (race condition 방지를 위해 await)
+//   4. SW 등록 완료 후 FCM 디바이스 토큰을 취득한다.
+//   5. 취득한 토큰을 서버에 전송한다.
 //
 // 사용 위치:
-//   - __root.tsx의 RootComponent에서 useEffect 대신 이 훅을 호출한다.
+//   - __root.tsx의 RootComponent에서 단 한 번 호출한다.
+//   - 훅이 내부적으로 status를 구독하므로, 호출 측에서 조건부 렌더링이나
+//     더미 컴포넌트 패턴을 쓸 필요가 없다.
 //
 // 설계 원칙:
 //   - 훅은 단일 책임(알림 초기화 조율)만 가지며, 세부 로직은 유틸로 위임한다.
-//   - 브라우저 지원 여부와 권한 상태를 단계별로 검증하여 안전하게 진행한다.
-//   - 앱 마운트 시 1회만 실행되며, 결과를 외부에 노출하지 않는다.
+//   - status 의존성을 useEffect에 명시하여 'authenticated' 전환 시 자동 실행.
+//   - 이후 RefreshToken 도입으로 initializeAuth()가 성공하는 경우에도
+//     별도 코드 변경 없이 자동으로 동작한다.
 
 import { useEffect } from 'react';
+import { useAuthStatus } from '@/stores/auth.store';
 import { register } from '@/libs/ServiceWorkerRegistration';
 import { getDeviceToken } from '@/libs/getDeviceToken';
+import api from '@/libs/common/api';
 
 /**
- * 앱 마운트 시 푸시 알림 초기화를 수행하는 훅.
- * __root.tsx의 RootComponent에서 단 한 번 호출한다.
+ * 인증 상태가 'authenticated'로 전환될 때 푸시 알림 초기화를 수행하는 훅.
+ * RootComponent에서 단 한 번 호출하며, 훅이 status를 직접 구독한다.
  */
 export function usePushNotification(): void {
+    const status = useAuthStatus();
+
     useEffect(() => {
-        // 서버 사이드 렌더링 환경 또는 알림 API 미지원 브라우저 조기 반환
-        if (typeof window === 'undefined' || !('Notification' in window)) {
-            return;
-        }
+        // 인증되지 않은 상태거나 브라우저 미지원 환경에서는 실행하지 않음
+        if (status !== 'authenticated') return;
+        if (typeof window === 'undefined' || !('Notification' in window)) return;
 
         void initializePushNotification();
-    }, []);
+    }, [status]);
+    // status가 'authenticated'로 바뀔 때마다 실행됨.
+    // 로그아웃 후 재로그인, RefreshToken 복구 등 어떤 인증 경로도 자동 처리됨.
 }
 
 // ─── 내부 함수: 알림 초기화 흐름 ─────────────────────────────────────────────
@@ -83,19 +92,15 @@ async function initializePushNotification(): Promise<void> {
         return;
     }
 
-    // Step 4: 토큰을 서버로 전송
-    // TODO: FCM 토큰을 서버에 전송하여 사용자와 디바이스를 연결한다.
-    //   - API 엔드포인트 확정 후 아래 주석을 해제하고 구현한다.
-    //   - 예시:
-    //
-    //   try {
-    //     await api.post('/notifications/device-token', { token });
-    //   } catch (error) {
-    //     if (import.meta.env.DEV) {
-    //       console.error('[푸시 알림] 토큰 서버 전송 실패:', error);
-    //     }
-    //   }
-    if (import.meta.env.DEV) {
-        console.log('[푸시 알림] 초기화 완료. 토큰을 서버에 전송할 준비가 되었습니다.');
+    // Step 4: FCM 토큰을 서버에 전송
+    try {
+        await api.patch('/my/fcm-token', { fcmToken: token });
+        if (import.meta.env.DEV) {
+            console.log('[푸시 알림] 초기화 완료. FCM 토큰을 서버에 전송했습니다.');
+        }
+    } catch (error) {
+        if (import.meta.env.DEV) {
+            console.error('[푸시 알림] 토큰 서버 전송 실패:', error);
+        }
     }
 }

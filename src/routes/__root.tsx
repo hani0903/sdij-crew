@@ -97,7 +97,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 // ─── 루트 컴포넌트 ────────────────────────────────────────────────────────────
 
 function RootComponent() {
-    // 앱 마운트 시 푸시 알림 초기화 (권한 요청 → SW 등록 → FCM 토큰 취득)
+    // 인증 상태가 'authenticated'로 전환될 때 자동으로 푸시 알림 초기화
+    // 훅이 status를 내부적으로 구독하므로, onSuccess나 더미 컴포넌트 없이도 동작
     usePushNotification();
 
     return (
