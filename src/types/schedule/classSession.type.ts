@@ -6,16 +6,17 @@ export type ClassSessionStatus = 'NORMAL' | 'CANCELLED' | 'MAKEUP';
 // 서버가 반환하는 도메인 모델. 여러 서비스·훅·컴포넌트에서 공유되므로 types/ 최상위에 정의.
 
 export interface ClassSession {
+    id: number;
     teacherId: number;
+    teacherName: string;
     /** 1~6 */
     periodNumber: number;
-    /** 예: 602 */
-    classroomId: number;
+    roomNumber: number;
     subject: string;
     group: string;
     inPersonCount: number;
     onlineCount: number;
-    classStatus: ClassSessionStatus;
+    status: ClassSessionStatus;
     /** 'YYYY-MM-DD' */
     date: string;
 }
@@ -26,7 +27,7 @@ export interface ClassSession {
 
 /** POST /class-sessions/bulk 요청 바디의 단일 수업 항목 */
 export interface CreateClassSessionItem {
-    teacherId: number;
+    teacherName: string;
     periodNumber: number;
     classroomId: number;
     subject: string;

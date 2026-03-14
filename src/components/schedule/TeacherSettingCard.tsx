@@ -1,4 +1,4 @@
-import { Eraser, PenTool, Mic, MonitorPlay, Info, Mail, CheckCircle2 } from 'lucide-react';
+import { Eraser, PenTool, Mic, MonitorPlay, Mail, CheckCircle2 } from 'lucide-react';
 import type { TeacherSetting } from '../../types/teacher/teacher.type';
 
 export default function TeacherSettingCard({ data }: { data: TeacherSetting }) {
@@ -21,9 +21,9 @@ export default function TeacherSettingCard({ data }: { data: TeacherSetting }) {
                             <Eraser size={16} />
                             <span>지우개</span>
                         </div>
-                        <p className="text-slate-900 font-semibold leading-tight">
-                            {data.eraser === 'default' ? '기본 4개' : data.eraser}
-                        </p>
+                        {/* <p className="text-slate-900 font-semibold leading-tight">
+                            {data === 'default' ? '기본 4개' : data.eraser}
+                        </p> */}
                     </div>
                     <div className="space-y-1">
                         <div className="flex items-center gap-1.5 text-slate-500 text-sm font-medium">
@@ -33,20 +33,20 @@ export default function TeacherSettingCard({ data }: { data: TeacherSetting }) {
                         <p className="text-slate-900 font-semibold">
                             <span
                                 className={`px-2 py-0.5 rounded text-xs ${
-                                    data.chalk.type === 'academy'
+                                    data.chalkType === 'ACADEMY'
                                         ? 'bg-green-100 text-green-700'
-                                        : data.chalk.type === 'personal'
+                                        : data.chalkType === 'PERSONAL'
                                           ? 'bg-purple-100 text-purple-700'
                                           : 'bg-orange-100 text-orange-700'
                                 }`}
                             >
-                                {data.chalk.type === 'academy'
+                                {data.chalkType === 'ACADEMY'
                                     ? '학원 분필'
-                                    : data.chalk.type === 'personal'
+                                    : data.chalkType === 'PERSONAL'
                                       ? '개인 분필'
                                       : '학원 분필 + 개인 분필'}
                             </span>
-                            <p className="text-sm">{data.chalk.detail}</p>
+                            <p className="text-sm">{data.chalkDetail}</p>
                         </p>
                     </div>
                 </div>
@@ -61,7 +61,7 @@ export default function TeacherSettingCard({ data }: { data: TeacherSetting }) {
                             <span>마이크</span>
                         </div>
                         <p className="text-slate-900 font-semibold">
-                            {data.mic === 'personal' ? '개인 마이크' : '학원 마이크'}
+                            {data.micType === 'PERSONAL' ? '개인 마이크' : '학원 마이크'}
                         </p>
                     </div>
                     <div className="space-y-1">
@@ -69,21 +69,21 @@ export default function TeacherSettingCard({ data }: { data: TeacherSetting }) {
                             <MonitorPlay size={16} />
                             <span>PPT 사용</span>
                         </div>
-                        <p className={`font-semibold ${data.ppt ? 'text-blue-600' : 'text-slate-400'}`}>
-                            {data.ppt ? '사용함' : '미사용'}
+                        <p className={`font-semibold ${data.hasPpt ? 'text-blue-600' : 'text-slate-400'}`}>
+                            {data.hasPpt ? '사용함' : '미사용'}
                         </p>
                     </div>
                 </div>
 
                 {/* 디테일 설명 (강조 영역) */}
-                {data.detail && (
+                {/* {data.detail && (
                     <div className="rounded-lg bg-red-50 p-3 border border-red-100">
                         <div className="flex items-start gap-2">
                             <Info size={16} className="text-red-500 mt-0.5 shrink-0" />
                             <p className="text-sm text-slate-700 leading-snug whitespace-pre-wrap">{data.detail}</p>
                         </div>
                     </div>
-                )}
+                )} */}
 
                 {/* 이메일 발송 여부 */}
                 {data.email && (

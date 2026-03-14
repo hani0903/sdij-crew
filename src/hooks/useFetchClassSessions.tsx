@@ -13,7 +13,9 @@ function toLocalDateString(date: Date): string {
 export function useFetchClassSessions(date: Date) {
     return useQuery({
         queryKey: QUERY_KEYS.CLASS_SESSIONS.BY_DATE(date),
-        queryFn: () => classSessionService.getByDate(toLocalDateString(date)),
+        queryFn: () =>
+            classSessionService.getByDate(toLocalDateString(date)).then((data) => data.classSessionResponses),
         staleTime: 5 * 60 * 1000, // 5분
+        placeholderData: (prev) => prev,
     });
 }

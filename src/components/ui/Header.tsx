@@ -13,6 +13,7 @@
   이것을 "데이터와 UI 의 분리" 라고 한다.
 */
 
+import { useAuthStatus } from '@/stores/auth.store';
 import Button from './Button';
 
 /* ─── 타입 정의 ──────────────────────────────────────────────────
@@ -40,6 +41,7 @@ export interface HeaderProps {
 }
 
 export default function Header({ title, navItems, ctaLabel, onCtaClick }: HeaderProps) {
+    const status = useAuthStatus();
     return (
         /*
       [왜 <header> 태그를 쓰나?]
@@ -90,7 +92,17 @@ export default function Header({ title, navItems, ctaLabel, onCtaClick }: Header
           ctaLabel 이 있을 때만 버튼을 렌더링.
           없으면 빈 div 로 justify-between 레이아웃 균형을 유지.
         */}
-                {ctaLabel ? <Button variant="ghost" label={ctaLabel} size="sm" onClick={onCtaClick} /> : <div />}
+                {ctaLabel ? (
+                    status === 'unauthenticated' ? (
+                        <Button variant="ghost" size="sm" className="p-2" onClick={onCtaClick}>
+                            {ctaLabel}
+                        </Button>
+                    ) : (
+                        <div> 유저 프로필 </div>
+                    )
+                ) : (
+                    <div />
+                )}
             </div>
         </header>
     );

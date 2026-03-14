@@ -47,11 +47,7 @@ const buttonVariants = cva(
                     'disabled:bg-gray-3 disabled:text-white disabled:opacity-100',
                 ],
                 secondary: ['bg-gray-1 text-black', 'hover:bg-gray-2 active:bg-gray-2', 'disabled:opacity-40'],
-                ghost: [
-                    'bg-transparent border border-gray-3 text-black',
-                    'hover:bg-gray-1 active:bg-gray-2',
-                    'disabled:opacity-40',
-                ],
+                ghost: ['bg-transparent  text-point', 'hover:text-point/70 active:text-gray-2', 'disabled:opacity-40'],
             },
             /**
              * size: 버튼의 물리적 크기(패딩, 폰트, 모서리)를 결정한다.

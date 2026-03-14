@@ -1,3 +1,3 @@
-const CLASS_ROOMS = ['601호', '602호', '603호', '604호', '605호', '606호', '607호', '608호'] as const;
+const CLASS_ROOMS = [601, 602, 603, 604, 605, 606, 607, 608] as const;
 
 export default CLASS_ROOMS;

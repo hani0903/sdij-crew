@@ -6,7 +6,8 @@ interface TabOption<T extends string> {
 }
 
 interface SegmentedControlProps<T extends string> {
-    options: TabOption<T>[];
+    // readonly 배열도 허용 — as const 로 선언된 TAB_OPTIONS를 직접 전달할 수 있도록
+    options: ReadonlyArray<TabOption<T>>;
     selectedValue: T;
     onChange: (value: T) => void;
     className?: string;

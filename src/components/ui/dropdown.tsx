@@ -5,7 +5,7 @@ import { useClickOutside } from '@/hooks/common/use-click-outside';
 import { DropdownIcon } from '@/assets';
 
 const dropdownVariants = cva(
-    'flex items-center justify-between w-full border border-gray-300 bg-white text-gray-800 h-full mobile:rounded-[10px] rounded-md mobile:px-4 mobile:py-3 py-2 pr-2 pl-3 font-normal mobile:font-medium mobile:text-base text-[13px]',
+    'flex items-center justify-between w-full bg-[#F6F6F8] text-gray-800 h-full rounded-lg mobile:rounded-xl mobile:px-4 mobile:py-3 py-2 pr-2 pl-3 font-normal mobile:font-medium mobile:text-base text-[13px] border-2 border-transparent transition-colors outline-none',
     {
         variants: {
             variant: {
@@ -20,11 +20,11 @@ const dropdownVariants = cva(
 );
 
 const dropdownMenuVariants = cva(
-    'w-full h-auto shadow-md rounded-md mobile:rounded-[10px] transition-colors duration-200 ',
+    'w-full h-auto shadow-md rounded-lg mobile:rounded-xl transition-colors duration-200 ',
     {
         variants: {
             variant: {
-                primary: 'bg-gray-200',
+                primary: 'bg-gray-1 border-gray-300',
                 secondary: 'bg-white',
             },
         },
@@ -35,11 +35,11 @@ const dropdownMenuVariants = cva(
 );
 
 const dropdownItemVariants = cva(
-    'relative flex w-full items-center mobile:px-4 px-3 mobile:py-3 py-2 mobile:font-medium mobile:text-base text-[13px] text-gray-800 leading-normal first:rounded-t-md last:rounded-b-md',
+    ' relative flex w-full items-center mobile:px-4 px-3 mobile:py-3 py-2 mobile:font-medium mobile:text-base text-[13px] text-gray-800 leading-normal first:rounded-t-lg last:rounded-b-lg mobile:first:rounded-t-xl mobile:last:rounded-b-xl',
     {
         variants: {
             variant: {
-                primary: 'hover:text-white hover:bg-point active:text-white active:bg-point',
+                primary: 'bg-point/10 hover:text-white hover:bg-point active:text-white active:bg-point',
                 secondary: 'hover:text-point hover:bg-gray-100 active:text-point active:bg-gray-100',
             },
         },
@@ -96,7 +96,7 @@ export default function Dropdown<T>({
                 aria-expanded={open}
                 aria-controls="dropdown-menu"
                 type="button"
-                className={dropdownVariants({ variant })}
+                className={cn(dropdownVariants({ variant }), open && 'border-point/50')}
                 onClick={handleToggle}
             >
                 {selectedLabel}

@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { playwright } from '@vitest/browser-playwright';
 const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+import { VitePWA } from 'vite-plugin-pwa';
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
@@ -22,6 +23,16 @@ export default defineConfig({
 
         react(),
         tailwindcss(),
+        VitePWA({
+            injectRegister: 'auto',
+            registerType: 'autoUpdate',
+            includeAssets: ['**/*'],
+            manifest: false,
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,png,svg,ico,json}'],
+                maximumFileSizeToCacheInBytes: 8 * 1024 * 1024, // 필수 x
+            },
+        }),
     ],
     test: {
         projects: [

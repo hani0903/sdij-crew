@@ -1,145 +1,308 @@
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import { useState } from 'react';
-import type { ClassSession } from '@/types/schedule/classSession.type';
+import type { ClassSessionStatus } from '@/types/schedule/classSession.type';
 import Dropdown from '@/components/ui/dropdown';
 import Input from '@/components/ui/Input';
+import { useCreateClassSessions } from '@/hooks/queries/useCreateClassSessions';
+import PERIOD from '@/constants/period';
+import CLASS_ROOMS from '@/constants/classes';
+import TeacherCombobox from '@/components/setting/teachers/TeacherCombobox';
+import FormField from '@/components/ui/FormField';
 
 interface Props {
     isOpen: boolean;
     onClose: () => void;
+    /** WeekDayBar에서 선택된 날짜*/
+    date: Date;
 }
 
-// 폼 입력값의 타입
-type ClassSessionForm = Omit<ClassSession, 'periodNumber' | 'classroomId' | 'teacherId'> & {
+/**
+ * 폼 입력값 타입
+ * - periodNumber, classroomId: 드롭다운 미선택 상태를 '' 로 표현 → 제출 전 number로 변환
+ * - teacherId: 추후 인증 컨텍스트 연동 예정, 현재는 임시값 사용
+ */
+interface ClassSessionForm {
     periodNumber: number | '';
     classroomId: number | '';
-    teacherId: number | '';
-};
+    teacherName: string;
+    subject: string;
+    group: string;
+    inPersonCount: number;
+    onlineCount: number;
+    classStatus: ClassSessionStatus;
+}
 
-const initialFormState: ClassSessionForm = {
-    date: new Date().toISOString().split('T')[0],
+// ─── 상수 ──────────────────────────────────────────────────────────────────
+
+/** 새 카드 초기 상태 — 추가 버튼 클릭 시 이 값으로 배열에 삽입 */
+const createInitialFormState = (): ClassSessionForm => ({
     periodNumber: '',
     classroomId: '',
-    teacherId: '',
+    teacherName: '',
     subject: '',
     group: '',
     inPersonCount: 0,
     onlineCount: 0,
     classStatus: 'NORMAL',
-};
+});
 
-export default function TimeTableAddModal({ isOpen, onClose }: Props) {
-    // 폼 입력값 상태 — 입력 필드 연결 시 _접두사 제거 후 사용
-    const [enteredClasses, setEnteredClasses] = useState<ClassSessionForm[]>([initialFormState]);
+/** 교시 드롭다운 항목 — constants/period.ts 기반으로 생성 (number → "N교시" 표시) */
+const PERIOD_ITEMS = PERIOD.map((periodNumber) => ({
+    id: String(periodNumber),
+    title: `${periodNumber}교시`,
+}));
+
+/** 강의실 드롭다운 항목 — constants/classes.ts 기반으로 생성 (number → "N호" 표시) */
+const CLASSROOM_ITEMS = CLASS_ROOMS.map((roomNumber) => ({
+    id: String(roomNumber),
+    title: `${roomNumber}호`,
+}));
+
+// ─── 유틸 ──────────────────────────────────────────────────────────────────
+
+/**
+ * Date → 'YYYY-MM-DD' 문자열 변환 (서버 요청용)
+ * date-fns 미사용 환경에서 직접 포맷
+ */
+function toDateString(date: Date): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+/**
+ * Date → 'M월 D일' 한국어 포맷 (모달 타이틀용)
+ * date-fns 미사용 환경에서 toLocaleDateString 활용
+ */
+function formatKoreanDate(date: Date): string {
+    return date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+}
+
+// ─── 유효성 검사 ────────────────────────────────────────────────────────────
+
+/**
+ * 단일 폼 항목의 필수 필드 검증
+ * - periodNumber, classroomId, subject, group 이 비어있으면 false 반환
+ */
+function isFormItemValid(item: ClassSessionForm): boolean {
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="수업 추가">
-            <div className="relative flex flex-col gap-5 w-full h-full bg-gray-1 p-4">
-                <ul className="w-full flex flex-col gap-4 ">
-                    {enteredClasses.map((enteredClass, idx) => (
-                        <li className="w-full flex flex-col gap-5 p-4 rounded-lg bg-white">
-                            <div className="w-full flex items-center gap-4">
-                                <FormField label="교시" className="flex-1">
-                                    <Dropdown
-                                        variant={'primary'}
-                                        selectedLabel={enteredClass.periodNumber.toString() || '1'}
-                                        items={[
-                                            { id: '1', title: '1교시' },
-                                            { id: '2', title: '2교시' },
-                                            { id: '3', title: '3교시' },
-                                            { id: '4', title: '4교시' },
-                                            { id: '5', title: '5교시' },
-                                        ]}
-                                        onSelect={(id) => {
-                                            setEnteredClasses((prev) =>
-                                                prev.map((item, i) =>
-                                                    i === idx ? { ...item, periodNumber: Number(id) } : item,
-                                                ),
-                                            );
-                                        }}
-                                    />
-                                </FormField>
-                                <FormField label="강의실" className="flex-1">
-                                    <Dropdown
-                                        variant={'primary'}
-                                        selectedLabel={enteredClass.classroomId.toString() || '601'}
-                                        items={[
-                                            { id: '601', title: '601호' },
-                                            { id: '602', title: '602호' },
-                                            { id: '603', title: '603호' },
-                                            { id: '604', title: '604호' },
-                                            { id: '605', title: '605호' },
-                                            { id: '606', title: '606호' },
-                                            { id: '607', title: '607호' },
-                                            { id: '608', title: '608호' },
-                                        ]}
-                                        onSelect={(id) => {
-                                            setEnteredClasses((prev) =>
-                                                prev.map((item, i) =>
-                                                    i === idx ? { ...item, classroomId: Number(id) } : item,
-                                                ),
-                                            );
-                                        }}
-                                    />
-                                </FormField>
-                            </div>
-
-                            <div className="w-full flex flex-col gap-4">
-                                <FormField label="수업명" className="flex-1">
-                                    <Input placeholder="ex) 국어(독서)" />
-                                </FormField>
-
-                                <FormField label="반" className="flex-1">
-                                    <Input placeholder="ex) S" />
-                                </FormField>
-                            </div>
-
-                            <div className="w-full flex items-center gap-4">
-                                <FormField label="현강생" className="flex-1">
-                                    <Input type="number" className="inline-block" />
-                                </FormField>
-
-                                <FormField label="인강생" className="flex-1">
-                                    <Input type="number" />
-                                </FormField>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-
-                {/* 하단 버튼 영역 */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full flex flex-col gap-3">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onClose}
-                        className="border-point/30 border-2 border-dashed rounded-lg text-point bg-white"
-                    >
-                        새로운 수업 추가하기
-                    </Button>
-                    <Button variant="primary" size="sm" onClick={onClose}>
-                        추가
-                    </Button>
-                </div>
-            </div>
-        </Modal>
+        item.periodNumber !== '' && item.classroomId !== '' && item.subject.trim() !== '' && item.group.trim() !== ''
     );
 }
 
-// ─── 내부 헬퍼 컴포넌트 ─────────────────────────────────────────────────────
+// ─── 컴포넌트 ───────────────────────────────────────────────────────────────
 
-interface FormFieldProps {
-    label: string;
-    children: React.ReactNode;
-    className?: string;
-}
+export default function TimeTableAddModal({ isOpen, onClose, date }: Props) {
+    // 수업 카드 목록 상태 — 초기값은 카드 1개
+    const [enteredClasses, setEnteredClasses] = useState<ClassSessionForm[]>([createInitialFormState()]);
 
-/** 라벨 + 입력 필드 묶음 — 이 모달 내부에서만 사용 */
-function FormField({ label, children, className }: FormFieldProps) {
+    const { mutate: createSessions, isPending } = useCreateClassSessions();
+
+    // ── 핸들러 ─────────────────────────────────────────────────────────────
+
+    /** 특정 인덱스의 폼 필드 부분 업데이트 */
+    const updateCard = (idx: number, patch: Partial<ClassSessionForm>) => {
+        setEnteredClasses((prev) => prev.map((item, i) => (i === idx ? { ...item, ...patch } : item)));
+    };
+
+    /** 새 수업 카드 추가 — 같은 날짜, 다른 교시 입력용 */
+    const handleAddCard = () => {
+        setEnteredClasses((prev) => [...prev, createInitialFormState()]);
+    };
+
+    /** 특정 인덱스의 수업 카드 삭제 */
+    const handleRemoveCard = (idx: number) => {
+        setEnteredClasses((prev) => prev.filter((_, i) => i !== idx));
+    };
+
+    /** 모달 닫힘 시 폼 상태 초기화 */
+    const handleClose = () => {
+        setEnteredClasses([createInitialFormState()]);
+        onClose();
+    };
+
+    /**
+     * 제출 핸들러
+     * - 유효성 검사 통과 시 bulk POST 호출
+     * - teacherId는 추후 인증 컨텍스트로 교체 예정 (현재 임시값 0 사용)
+     */
+    const handleSubmit = () => {
+        // 모든 카드가 유효한지 검사
+        const allValid = enteredClasses.every(isFormItemValid);
+        if (!allValid) {
+            // TODO: 토스트 라이브러리 도입 후 교체
+            console.warn('[TimeTableAddModal] 필수 항목(교시, 강의실, 수업명, 반)을 모두 입력해주세요.');
+            return;
+        }
+
+        const dateString = toDateString(date);
+
+        createSessions(
+            {
+                sessions: enteredClasses.map((item) => ({
+                    // 유효성 검사를 통과했으므로 '' 타입 단언 없이 number임이 보장됨
+                    periodNumber: item.periodNumber as number,
+                    classroomId: (item.classroomId as number) % 600,
+                    teacherName: item.teacherName,
+                    subject: item.subject,
+                    group: item.group,
+                    inPersonCount: item.inPersonCount,
+                    onlineCount: item.onlineCount,
+                    classStatus: item.classStatus,
+                    date: dateString,
+                })),
+            },
+            {
+                onSuccess: () => {
+                    // TODO: 토스트 라이브러리 도입 후 교체
+                    console.log('[TimeTableAddModal] 수업이 성공적으로 추가되었습니다.');
+                    handleClose();
+                },
+                onError: (error) => {
+                    // 에러 상세는 인터셉터에서 일괄 처리, 여기서는 폼 유지
+                    console.error('[TimeTableAddModal] 수업 추가 실패:', error.response?.data);
+                },
+            },
+        );
+    };
+
+    // ── 렌더 ───────────────────────────────────────────────────────────────
+
+    const modalTitle = `${formatKoreanDate(date)} 수업 추가`;
+
     return (
-        <div className={`flex flex-col gap-1.5 ${className ?? ''}`}>
-            <label className="text-sm font-medium text-gray-4">{label}</label>
-            {children}
-        </div>
+        <Modal isOpen={isOpen} onClose={handleClose} title={modalTitle}>
+            <main className="p-5 bg-gray-1 w-full flex-1">
+                <div className="flex flex-col gap-5 w-full pb-28">
+                    {/* 수업 카드 목록 */}
+                    <ul className="w-full flex flex-col gap-4">
+                        {enteredClasses.map((enteredClass, idx) => (
+                            <li key={idx} className="w-full flex flex-col gap-5 p-4 rounded-lg bg-white">
+                                {/* 카드 헤더 — 카드 번호 + 삭제 버튼 (카드가 1개일 때는 숨김) */}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-semibold text-point">수업 {idx + 1}</span>
+                                    {enteredClasses.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveCard(idx)}
+                                            className="text-xs text-red-400 hover:text-red-600 transition-colors px-2 py-1 rounded"
+                                            aria-label={`${idx + 1}번째 수업 카드 삭제`}
+                                        >
+                                            삭제
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* 교시 + 강의실 */}
+                                <div className="w-full flex items-center gap-4">
+                                    <FormField label="교시" className="flex-1">
+                                        <Dropdown
+                                            variant="primary"
+                                            selectedLabel={
+                                                enteredClass.periodNumber !== ''
+                                                    ? `${enteredClass.periodNumber}교시`
+                                                    : '선택'
+                                            }
+                                            items={PERIOD_ITEMS}
+                                            onSelect={(id) => updateCard(idx, { periodNumber: Number(id) })}
+                                        />
+                                    </FormField>
+                                    <FormField label="강의실" className="flex-1">
+                                        <Dropdown
+                                            variant="primary"
+                                            selectedLabel={
+                                                enteredClass.classroomId !== ''
+                                                    ? `${enteredClass.classroomId}호`
+                                                    : '선택'
+                                            }
+                                            items={CLASSROOM_ITEMS}
+                                            onSelect={(id) => updateCard(idx, { classroomId: Number(id) })}
+                                        />
+                                    </FormField>
+                                </div>
+
+                                <FormField label="선생님">
+                                    <TeacherCombobox
+                                        onSelect={(teacher) => updateCard(idx, { teacherName: teacher.name })}
+                                    />
+                                </FormField>
+
+                                {/* 수업명 + 반 */}
+                                <div className="w-full flex flex-col gap-4">
+                                    <FormField label="수업명">
+                                        <Input
+                                            placeholder="ex) 국어(독서)"
+                                            value={enteredClass.subject}
+                                            onChange={(e) => updateCard(idx, { subject: e.target.value })}
+                                        />
+                                    </FormField>
+                                    <FormField label="반">
+                                        <Input
+                                            placeholder="ex) S"
+                                            value={enteredClass.group}
+                                            onChange={(e) => updateCard(idx, { group: e.target.value })}
+                                        />
+                                    </FormField>
+                                </div>
+
+                                {/* 현강생 + 인강생 */}
+                                <div className="w-full flex items-center gap-4">
+                                    <FormField label="현강생" className="flex-1">
+                                        <Input
+                                            type="number"
+                                            min={0}
+                                            value={enteredClass.inPersonCount}
+                                            onChange={(e) =>
+                                                updateCard(idx, {
+                                                    inPersonCount: Number(e.target.value),
+                                                })
+                                            }
+                                        />
+                                    </FormField>
+                                    <FormField label="인강생" className="flex-1">
+                                        <Input
+                                            type="number"
+                                            min={0}
+                                            value={enteredClass.onlineCount}
+                                            onChange={(e) =>
+                                                updateCard(idx, {
+                                                    onlineCount: Number(e.target.value),
+                                                })
+                                            }
+                                        />
+                                    </FormField>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+
+                    {/* 하단 버튼 영역 — 모달 본문 흐름에 포함 (스크롤 가능) */}
+                    <div className="flex flex-col gap-3">
+                        {/* 새 수업 카드 추가 버튼 */}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleAddCard}
+                            className="w-full border-point/30 border-2 border-dashed rounded-lg text-point bg-white"
+                        >
+                            새로운 수업 추가하기
+                        </Button>
+
+                        {/* 제출 버튼 */}
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={handleSubmit}
+                            disabled={isPending}
+                            className="w-full"
+                        >
+                            {isPending ? '추가 중...' : '추가'}
+                        </Button>
+                    </div>
+                </div>
+            </main>
+        </Modal>
     );
 }

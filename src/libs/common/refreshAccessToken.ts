@@ -1,37 +1,22 @@
-import axios from 'axios';
-import { tokenStore } from './tokenStore';
+// ─── @deprecated ─────────────────────────────────────────────────────────────
+//
+// 이 파일은 더 이상 사용되지 않습니다.
+// AccessToken 재발급 로직은 두 곳으로 분리되었습니다:
+//
+//   1. src/services/auth/auth.service.ts → authService.refresh()
+//      (HTTP 통신 담당. RefreshToken 도입 시 이 함수만 수정)
+//
+//   2. src/libs/common/api.ts → Response 인터셉터
+//      (401 감지 → authService.refresh() 호출 → 재시도 흐름)
+//
+// 이 파일은 레거시 코드와의 호환성을 위해 잠시 유지되며,
+// 모든 참조가 제거되면 삭제합니다.
 
-const MAX_REFRESH_RETRIES = 3;
-let failCount = 0;
-let pendingRefresh: Promise<string> | null = null;
-
+/** @deprecated src/services/auth/auth.service.ts의 authService.refresh()를 사용하세요 */
 export const refreshAccessToken = (): Promise<string> => {
-    // 동시에 여러 요청이 401을 받아도 갱신 요청은 단 하나만 실행
-    if (pendingRefresh) return pendingRefresh;
-
-    if (failCount >= MAX_REFRESH_RETRIES) {
-        failCount = 0;
-        return Promise.reject(new Error('Max refresh retries exceeded'));
-    }
-
-    pendingRefresh = axios
-        .post<{ accessToken: string }>(
-            `${import.meta.env.VITE_API_URL}/auth/refresh`,
-            {},
-            { withCredentials: true }, // 리프레시 토큰은 httpOnly 쿠키로 관리
-        )
-        .then(({ data }) => {
-            tokenStore.set(data.accessToken);
-            failCount = 0;
-            return data.accessToken;
-        })
-        .catch((error) => {
-            failCount++;
-            throw error;
-        })
-        .finally(() => {
-            pendingRefresh = null;
-        });
-
-    return pendingRefresh;
+    console.warn(
+        '[deprecated] refreshAccessToken()은 더 이상 사용되지 않습니다. ' +
+        'authService.refresh()를 사용하세요.',
+    );
+    return Promise.reject(new Error('[deprecated] refreshAccessToken — authService.refresh()로 대체됨'));
 };

@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingIndexRouteImport } from './routes/setting/index'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as DocsPreFirstPeriodTasksRouteImport } from './routes/docs/pre-first-period-tasks'
+import { Route as LoginOauth2CodeKakaoRouteImport } from './routes/login.oauth2.code.kakao'
 
 const ScheduleRoute = ScheduleRouteImport.update({
   id: '/schedule',
@@ -46,6 +47,11 @@ const DocsPreFirstPeriodTasksRoute = DocsPreFirstPeriodTasksRouteImport.update({
   path: '/docs/pre-first-period-tasks',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginOauth2CodeKakaoRoute = LoginOauth2CodeKakaoRouteImport.update({
+  id: '/login/oauth2/code/kakao',
+  path: '/login/oauth2/code/kakao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/docs/pre-first-period-tasks': typeof DocsPreFirstPeriodTasksRoute
   '/docs/': typeof DocsIndexRoute
   '/setting/': typeof SettingIndexRoute
+  '/login/oauth2/code/kakao': typeof LoginOauth2CodeKakaoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/docs/pre-first-period-tasks': typeof DocsPreFirstPeriodTasksRoute
   '/docs': typeof DocsIndexRoute
   '/setting': typeof SettingIndexRoute
+  '/login/oauth2/code/kakao': typeof LoginOauth2CodeKakaoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +79,7 @@ export interface FileRoutesById {
   '/docs/pre-first-period-tasks': typeof DocsPreFirstPeriodTasksRoute
   '/docs/': typeof DocsIndexRoute
   '/setting/': typeof SettingIndexRoute
+  '/login/oauth2/code/kakao': typeof LoginOauth2CodeKakaoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/docs/pre-first-period-tasks'
     | '/docs/'
     | '/setting/'
+    | '/login/oauth2/code/kakao'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +99,7 @@ export interface FileRouteTypes {
     | '/docs/pre-first-period-tasks'
     | '/docs'
     | '/setting'
+    | '/login/oauth2/code/kakao'
   id:
     | '__root__'
     | '/'
@@ -97,6 +108,7 @@ export interface FileRouteTypes {
     | '/docs/pre-first-period-tasks'
     | '/docs/'
     | '/setting/'
+    | '/login/oauth2/code/kakao'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +118,7 @@ export interface RootRouteChildren {
   DocsPreFirstPeriodTasksRoute: typeof DocsPreFirstPeriodTasksRoute
   DocsIndexRoute: typeof DocsIndexRoute
   SettingIndexRoute: typeof SettingIndexRoute
+  LoginOauth2CodeKakaoRoute: typeof LoginOauth2CodeKakaoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -152,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsPreFirstPeriodTasksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login/oauth2/code/kakao': {
+      id: '/login/oauth2/code/kakao'
+      path: '/login/oauth2/code/kakao'
+      fullPath: '/login/oauth2/code/kakao'
+      preLoaderRoute: typeof LoginOauth2CodeKakaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -162,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocsPreFirstPeriodTasksRoute: DocsPreFirstPeriodTasksRoute,
   DocsIndexRoute: DocsIndexRoute,
   SettingIndexRoute: SettingIndexRoute,
+  LoginOauth2CodeKakaoRoute: LoginOauth2CodeKakaoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,2 +1,3 @@
-const PERIOD = ['1교시', '2교시', '3교시', '4교시', '5교시', '6교시'];
+// 교시 번호 목록 (1~6). Timetable 컴포넌트의 periods prop과 타입이 일치합니다.
+const PERIOD: number[] = [1, 2, 3, 4, 5, 6];
 export default PERIOD;

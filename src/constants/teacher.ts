@@ -1,6 +1,18 @@
-import type { TeacherSetting } from '../types/teacher/teacher.type';
+/**
+ * 레거시 목 데이터용 타입 — API 연동 전 화면 개발에 사용하던 구 버전 구조.
+ * 실제 API 연동 후에는 이 파일 전체를 제거하고 서버 데이터로 교체 예정.
+ */
+interface LegacyTeacherSetting {
+    name: string;
+    chalk: { type: 'academy' | 'personal' | 'mixed'; detail?: string };
+    eraser: string;
+    mic: 'academy' | 'personal';
+    ppt: boolean;
+    detail: string;
+    email: boolean | string;
+}
 
-export const TEACHERS_SETTINGS_DATA: TeacherSetting[] = [
+export const TEACHERS_SETTINGS_DATA: LegacyTeacherSetting[] = [
     {
         name: '강기원',
         chalk: { type: 'academy', detail: '학원분필 사용 (흰4, 노4, 빨2, 파2 세팅)' },
@@ -544,6 +556,7 @@ export const TEACHERS_SETTINGS_DATA: TeacherSetting[] = [
         eraser: '지우개-분필 4세트 모두 피피티 안쪽으로 들어오도록 세팅',
         mic: 'academy',
         ppt: true,
+        detail: '(개인 분필은 강사 대기실) 학원 분필은 흰색만 2개씩 세팅',
         email: false,
     },
     {
@@ -651,6 +664,7 @@ export const TEACHERS_SETTINGS_DATA: TeacherSetting[] = [
         eraser: 'default',
         mic: 'personal',
         ppt: false,
+        detail: '6층 강사대기실에서 쓰시기 좋게만 꺼내놓기',
         email: false,
     },
     {

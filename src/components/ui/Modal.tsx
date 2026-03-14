@@ -150,11 +150,7 @@ export default function Modal({
             >
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-2 shrink-0">
-                    {title ? (
-                        <h2 className="text-xl font-bold">{title}</h2>
-                    ) : (
-                        <span aria-hidden="true" />
-                    )}
+                    {title ? <h2 className="text-xl font-bold">{title}</h2> : <span aria-hidden="true" />}
                     <button
                         ref={closeBtnRef}
                         type="button"
@@ -167,7 +163,7 @@ export default function Modal({
                 </div>
 
                 {/* 본문 — 내부 스크롤 지원 */}
-                <div className="flex-1 overflow-y-auto p-5">{children}</div>
+                <div className="flex-1 overflow-y-auto">{children}</div>
             </div>
         </div>,
         document.body,

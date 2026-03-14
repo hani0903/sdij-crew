@@ -1,66 +1,48 @@
 import { useState } from 'react';
 import { getPeriodTime } from '../../utils/getPeriodTime';
+import type { ClassSession } from '@/types/schedule/classSession.type';
 
-export type ClassStatus = 'normal' | 'cancelled' | 'makeup';
-
-export interface ClassEntry {
-    /** 교시 (예: '1교시'). periods 배열의 값과 일치해야 함 */
-    period: string;
-    /** 교실 (예: '601호'). classrooms 배열의 값과 일치해야 함 */
-    room: string;
-    /** 담당 강사 이름 */
-    teacher: string;
-    /** 수업 과목명 */
-    subject: string;
-    /** 수강반. 없으면 과목명만 표시 */
-    group?: string | null;
-    /** 현강생 수 */
-    inPersonCount: number;
-    /** 인강생 수 */
-    onlineCount: number;
-    /** 수업 상태 */
-    status: ClassStatus;
-}
+export type ClassStatus = 'NORMAL' | 'CANCELLED' | 'MAKEUP';
 
 export interface TimetableProps {
     /** 열 헤더에 표시될 교실 이름 목록 */
-    classrooms: string[];
+    classrooms: number[];
     /** 행 헤더에 표시될 교시 이름 목록 */
-    periods: string[];
+    periods: number[];
     /**
      * 수업 데이터 목록 (평면 배열).
      * 각 항목의 period + room 으로 어느 셀에 들어갈지 자동으로 결정됨.
      * period/room 이 classrooms/periods 에 없는 항목은 무시됨.
      */
-    data: ClassEntry[];
+    data: ClassSession[];
     /**
      * 한 번에 보여줄 교시(행) 수. 기본값: 3
      * 전체 교시가 6개이고 pageSize가 3이면 → 1~3교시 / 4~6교시 로 나뉨
      */
     pageSize?: number;
     /** 수업 셀 클릭 시 호출되는 콜백. 빈 셀에서는 호출되지 않음 */
-    onEntryClick?: (entry: ClassEntry) => void;
+    onEntryClick?: (entry: ClassSession) => void;
 }
 
 /* ─── 상태별 스타일 ─────────────────────────────────────────── */
 const statusCellClass: Record<ClassStatus, string> = {
-    normal: '',
-    cancelled: 'opacity-40',
-    makeup: 'bg-point/5',
+    NORMAL: '',
+    CANCELLED: 'opacity-40',
+    MAKEUP: 'bg-point/5',
 };
 
 /* ─── 상태 배지 ─────────────────────────────────────────────── */
 function StatusBadge({ status }: { status: ClassStatus }) {
-    if (status === 'normal') return null;
+    if (status === 'NORMAL') return null;
 
     return (
         <span
             className={[
                 'inline-block rounded px-1.5 py-0.5 font-pretendard text-xs font-medium',
-                status === 'cancelled' ? 'bg-gray-2 text-gray-4' : 'bg-point text-white',
+                status === 'CANCELLED' ? 'bg-gray-2 text-gray-4' : 'bg-point text-white',
             ].join(' ')}
         >
-            {status === 'cancelled' ? '휴강' : '보강'}
+            {status === 'CANCELLED' ? '휴강' : '보강'}
         </span>
     );
 }
@@ -77,6 +59,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
       부모(App.tsx)가 알 필요가 없다.
       이런 경우 컴포넌트 안에서 useState 로 관리하는 게 맞다.
     */
+
     const [page, setPage] = useState(0);
 
     const totalPages = Math.ceil(periods.length / pageSize);
@@ -85,9 +68,9 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
     /* 현재 페이지에 해당하는 교시만 잘라냄 */
     const visiblePeriods = periods.slice(page * pageSize, (page + 1) * pageSize);
 
-    const cellMap = new Map<string, ClassEntry>();
+    const cellMap = new Map<string, ClassSession>();
     for (const entry of data) {
-        cellMap.set(`${entry.period}::${entry.room}`, entry);
+        cellMap.set(`${entry.periodNumber}::${entry.roomNumber}`, entry);
     }
 
     /*
@@ -127,10 +110,10 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                     <tbody>
                         {visiblePeriods.map((period) => (
                             <tr key={period} className="group">
-                                {/* 교시 헤더 */}
+                                {/* 교시 헤더 — periodNumber(number)를 "N교시" 형식으로 포맷팅 */}
                                 <td className="border-b border-r border-gray-2 bg-white px-3 py-4 text-center font-pretendard text-sm font-medium text-gray-4 group-last:border-b-0">
                                     <div className="flex flex-col items-center gap-1  text-center">
-                                        <span className="text-nowrap font-bold text-sm text-point">{period}</span>
+                                        <span className="text-nowrap font-bold text-sm text-point">{period}교시</span>
                                         <span className="text-xs font-regular text-[#64748B]">
                                             {getPeriodTime(period)}
                                         </span>
@@ -152,22 +135,22 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                                             {entry ? (
                                                 <div
                                                     onClick={() => onEntryClick?.(entry)}
-                                                    className="relative flex flex-col gap-2 w-[90px] h-[95px] overflow-hidden rounded-lg bg-point/10 p-2 px-3 cursor-pointer hover:brightness-95 transition-[filter] duration-150"
+                                                    className="relative flex flex-col gap-2 min-w-[90px] min-h-[95px] overflow-hidden rounded-lg bg-point/10 p-2 px-3 cursor-pointer hover:brightness-95 transition-[filter] duration-150"
                                                 >
                                                     <div className="absolute h-full w-1.5 bg-point left-0 top-0" />
                                                     {/* 강사명 */}
                                                     <span className="text-nowrap font-pretendard text-sm font-semibold text-black">
-                                                        {entry.teacher}
+                                                        {entry.teacherName}
                                                     </span>
                                                     {/* 과목명 + 수강반 */}
-                                                    <span className="text-nowrap font-pretendard text-xs font-medium text-[#475569]">
-                                                        {entry.subject}
+                                                    <div className="flex flex-col text-nowrap font-pretendard text-xs font-medium text-[#475569]">
+                                                        <span className="text-point">{entry.subject}</span>
                                                         {entry.group && (
                                                             <span className="ml-1 font-regular text-gray-4">
-                                                                {entry.group}
+                                                                {entry.group}반
                                                             </span>
                                                         )}
-                                                    </span>
+                                                    </div>
 
                                                     {/* 강사명 */}
 
