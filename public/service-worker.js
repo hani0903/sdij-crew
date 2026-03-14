@@ -82,15 +82,32 @@ self.addEventListener('notificationclick', (event) => {
     );
 });
 
-firebase.initializeApp({
-    apiKey: '...',
-    projectId: '...',
-    messagingSenderId: '...',
-    appId: '...',
-});
+// Service Worker는 Vite 번들러를 거치지 않으므로 import.meta.env 사용 불가
+// Firebase compat SDK를 importScripts()로 로드하여 사용
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+
+// Firebase 클라이언트 설정값은 공개 키이므로 직접 삽입 허용
+const firebaseConfig = {
+    apiKey: 'AIzaSyCq6GpDQWUPf3nyzQxq-NXRfiIurtMXK4U',
+    projectId: 'sdij-9c42f',
+    messagingSenderId: '738089770933',
+    appId: '1:738089770933:web:f72516712ecd066c7dc3fc',
+};
+
+firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
+
+// 백그라운드 메시지 수신 처리
 messaging.onBackgroundMessage((payload) => {
-    const { title, body } = payload.notification;
-    self.registration.showNotification(title, { body });
+    const notification = payload.notification ?? payload;
+    const title = notification.title ?? '알림';
+    const options = {
+        body: notification.body ?? '',
+        icon: '/icons/since-192x192.png',
+        badge: '/icons/since-128x128.png',
+        data: payload.data ?? {},
+    };
+    self.registration.showNotification(title, options);
 });
