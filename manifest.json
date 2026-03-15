@@ -1,8 +1,8 @@
 {
   "name": "since",
-  "short_name": "since",
-  "description": "since Progressive Web App",
-  "theme_color": "#5d5fef",
+  "short_name": "시인스",
+  "description": "시대인재 스태프를 위한 앱",
+  "theme_color": "#ffffff",
   "background_color": "#ffffff",
   "display": "standalone",
   "start_url": "/",
