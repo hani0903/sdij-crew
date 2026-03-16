@@ -46,9 +46,22 @@ export function register(): Promise<ServiceWorkerRegistration> {
 // ─── 내부 함수: 실제 등록 수행 ────────────────────────────────────────────────
 
 async function _doRegister(): Promise<ServiceWorkerRegistration> {
-    // 이미 등록된 SW가 있으면 재사용한다 (새로고침 이후 두 번째 방문)
+    // 구 vite-plugin-pwa가 설치한 SW(예: /sw.js)를 포함, /service-worker.js 이외의
+    // 모든 SW를 제거한다. 구 SW가 살아있으면 stale HTML을 캐시에서 서빙하여
+    // registerSW.js·manifest-[hash].json 404 에러가 발생한다.
+    const allRegistrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(
+        allRegistrations
+            .filter((reg) => {
+                const scriptURL = reg.active?.scriptURL ?? reg.installing?.scriptURL ?? reg.waiting?.scriptURL ?? '';
+                return !scriptURL.endsWith('/service-worker.js');
+            })
+            .map((reg) => reg.unregister()),
+    );
+
+    // 이미 올바른 SW가 active 상태이면 재사용한다 (새로고침 이후 두 번째 방문)
     const existing = await navigator.serviceWorker.getRegistration('/');
-    if (existing?.active) {
+    if (existing?.active?.scriptURL.endsWith('/service-worker.js')) {
         return existing;
     }
 

@@ -2,7 +2,7 @@ const CACHE_NAME = 'v1-cache';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/manifest.webmanifest',
+    '/manifest.json',
     '/icons/since-128x128.png',
     '/icons/since-144x144.png',
     '/icons/since-152x152.png',
