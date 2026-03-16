@@ -1,11 +1,13 @@
 // ─── 푸시 알림 초기화 훅 ─────────────────────────────────────────────────────
 //
 // 역할:
-//   1. 인증 상태(status)를 구독하여 'authenticated'로 전환될 때 자동으로 초기화.
+//   1. 인증 상태(status)를 구독하여 'authenticated'로 전환될 때 FCM을 초기화한다.
 //   2. 알림 권한을 요청한다.
-//   3. Service Worker를 등록한다. (race condition 방지를 위해 await)
-//   4. SW 등록 완료 후 FCM 디바이스 토큰을 취득한다.
-//   5. 취득한 토큰을 서버에 전송한다.
+//   3. 이미 등록된 SW를 재사용해 FCM 디바이스 토큰을 취득한다.
+//      (SW 등록 자체는 main.tsx의 앱 로드 시점에 완료되어 있음)
+//   4. 취득한 토큰을 서버에 전송한다.
+//   5. 로그아웃('unauthenticated' 전환) 시 서버의 FCM 토큰을 삭제하고
+//      Firebase의 로컬 토큰도 제거한다.
 //
 // 사용 위치:
 //   - __root.tsx의 RootComponent에서 단 한 번 호출한다.
@@ -13,38 +15,60 @@
 //     더미 컴포넌트 패턴을 쓸 필요가 없다.
 //
 // 설계 원칙:
-//   - 훅은 단일 책임(알림 초기화 조율)만 가지며, 세부 로직은 유틸로 위임한다.
-//   - status 의존성을 useEffect에 명시하여 'authenticated' 전환 시 자동 실행.
-//   - 이후 RefreshToken 도입으로 initializeAuth()가 성공하는 경우에도
-//     별도 코드 변경 없이 자동으로 동작한다.
+//   - SW 등록(register)과 FCM 초기화를 분리한다.
+//     SW 등록: main.tsx에서 앱 로드 즉시 실행 (인증 무관)
+//     FCM 초기화: 인증 이후에만 실행 (토큰은 인증된 사용자와 연결되어야 함)
+//   - useEffect cleanup에서 취소 플래그(cancelled)를 사용해 race condition을 방지한다.
+//     예: 빠르게 로그인→로그아웃→로그인 시 이전 비동기 흐름이 덮어쓰는 문제 방지.
 
 import { useEffect } from 'react';
+import { deleteToken } from 'firebase/messaging';
+import { messaging } from '@/core/notification/settingFCM';
 import { useAuthStatus } from '@/stores/auth.store';
 import { register } from '@/libs/ServiceWorkerRegistration';
 import { getDeviceToken } from '@/libs/getDeviceToken';
 import api from '@/libs/common/api';
 
 /**
- * 인증 상태가 'authenticated'로 전환될 때 푸시 알림 초기화를 수행하는 훅.
- * RootComponent에서 단 한 번 호출하며, 훅이 status를 직접 구독한다.
+ * 인증 상태에 따라 푸시 알림 초기화와 토큰 정리를 수행하는 훅.
+ * RootComponent에서 단 한 번 호출한다.
  */
 export function usePushNotification(): void {
     const status = useAuthStatus();
 
     useEffect(() => {
-        // 인증되지 않은 상태거나 브라우저 미지원 환경에서는 실행하지 않음
-        if (status !== 'authenticated') return;
+        // 브라우저가 알림을 지원하지 않으면 아무것도 하지 않는다
         if (typeof window === 'undefined' || !('Notification' in window)) return;
 
-        void initializePushNotification();
+        // 인증된 경우: FCM 토큰 취득 및 서버 등록
+        if (status === 'authenticated') {
+            // race condition 방지용 취소 플래그
+            // 예: 컴포넌트 언마운트나 status 재변경 시 이전 비동기 흐름을 무효화
+            let cancelled = false;
+
+            void initializeFCM(cancelled).then(() => {}).catch(() => {});
+
+            // cleanup: 다음 status 변경 또는 언마운트 시 이전 흐름 취소
+            return () => {
+                cancelled = true;
+            };
+        }
+
+        // 비인증 상태로 전환된 경우: 로그아웃 처리 — FCM 토큰 정리
+        if (status === 'unauthenticated') {
+            void cleanupFCM();
+        }
     }, [status]);
-    // status가 'authenticated'로 바뀔 때마다 실행됨.
+    // status가 변경될 때마다 실행됨.
     // 로그아웃 후 재로그인, RefreshToken 복구 등 어떤 인증 경로도 자동 처리됨.
 }
 
-// ─── 내부 함수: 알림 초기화 흐름 ─────────────────────────────────────────────
+// ─── 내부 함수: FCM 초기화 흐름 ───────────────────────────────────────────────
+//
+// SW 등록은 main.tsx에서 이미 완료되어 있다.
+// 여기서는 이미 등록된 SW를 가져와 FCM 토큰 발급에 사용한다.
 
-async function initializePushNotification(): Promise<void> {
+async function initializeFCM(cancelled: boolean): Promise<void> {
     // Step 1: 알림 권한 요청
     // 이미 결정된 권한('granted' | 'denied')이면 브라우저가 프롬프트를 띄우지 않는다.
     let permission: NotificationPermission;
@@ -58,6 +82,9 @@ async function initializePushNotification(): Promise<void> {
         return;
     }
 
+    // 이전 status 변경으로 인해 이 흐름이 무효화됐으면 중단
+    if (cancelled) return;
+
     if (permission !== 'granted') {
         if (import.meta.env.DEV) {
             console.info('[푸시 알림] 권한이 거부되었습니다. 알림을 초기화하지 않습니다.');
@@ -65,17 +92,20 @@ async function initializePushNotification(): Promise<void> {
         return;
     }
 
-    // Step 2: Service Worker 등록 (완료를 반드시 await)
-    // getDeviceToken()은 SW 등록 객체가 필요하므로 순서가 보장되어야 한다.
+    // Step 2: 이미 등록된 SW를 가져온다 (main.tsx에서 앱 로드 시 등록 완료)
+    // register()는 모듈 레벨에서 Promise를 캐싱하므로 재등록 없이 즉시 반환된다.
     let registration: ServiceWorkerRegistration;
     try {
         registration = await register();
     } catch (error) {
         if (import.meta.env.DEV) {
-            console.error('[푸시 알림] Service Worker 등록 실패:', error);
+            console.error('[푸시 알림] Service Worker 등록 확인 실패:', error);
         }
         return;
     }
+
+    // race condition 확인: 권한 요청 + SW 대기 중 status가 변경됐을 수 있음
+    if (cancelled) return;
 
     // Step 3: FCM 디바이스 토큰 취득
     let token: string | null;
@@ -87,6 +117,8 @@ async function initializePushNotification(): Promise<void> {
         }
         return;
     }
+
+    if (cancelled) return;
 
     if (!token) {
         return;
@@ -101,6 +133,47 @@ async function initializePushNotification(): Promise<void> {
     } catch (error) {
         if (import.meta.env.DEV) {
             console.error('[푸시 알림] 토큰 서버 전송 실패:', error);
+        }
+    }
+}
+
+// ─── 내부 함수: 로그아웃 시 FCM 토큰 정리 ────────────────────────────────────
+//
+// 로그아웃 후에도 해당 기기에 푸시가 가는 버그를 방지한다.
+// 서버 토큰 삭제 → Firebase 로컬 토큰 삭제 순으로 처리한다.
+// 각 단계의 실패가 전체를 중단시키지 않도록 개별 try/catch로 처리한다.
+
+async function cleanupFCM(): Promise<void> {
+    // 알림 권한이 없으면 토큰 자체가 없으므로 정리할 것이 없다
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+    }
+
+    // Step 1: 서버에서 FCM 토큰 삭제
+    // 서버가 이 기기로 푸시를 보내지 않도록 먼저 서버 측 토큰을 제거한다.
+    try {
+        await api.delete('/my/fcm-token');
+        if (import.meta.env.DEV) {
+            console.log('[푸시 알림] 서버 FCM 토큰 삭제 완료.');
+        }
+    } catch (error) {
+        // 401(이미 로그아웃됨) 또는 404(토큰 없음) 등은 정상 케이스로 볼 수 있음
+        if (import.meta.env.DEV) {
+            console.warn('[푸시 알림] 서버 FCM 토큰 삭제 실패 (무시):', error);
+        }
+    }
+
+    // Step 2: Firebase 로컬 토큰 삭제
+    // 클라이언트 측 push subscription을 해제하여 stale 토큰이 남지 않도록 한다.
+    try {
+        await deleteToken(messaging);
+        if (import.meta.env.DEV) {
+            console.log('[푸시 알림] Firebase 로컬 FCM 토큰 삭제 완료.');
+        }
+    } catch (error) {
+        // 토큰이 없는 경우 deleteToken은 throw할 수 있으므로 무시한다
+        if (import.meta.env.DEV) {
+            console.warn('[푸시 알림] Firebase 로컬 FCM 토큰 삭제 실패 (무시):', error);
         }
     }
 }
