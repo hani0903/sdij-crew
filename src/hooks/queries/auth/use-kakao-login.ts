@@ -19,16 +19,21 @@ export function useKakaoLogin() {
     return useMutation<LoginResponse, Error, KakaoCallbackRequest>({
         mutationFn: (body) => authService.kakaoCallback(body),
 
-        onSuccess: ({ accessToken }) => {
-            // 1. 스토어에 토큰 저장 → status: 'authenticated' 로 전환
-            setToken(accessToken);
+        onSuccess: ({ accessToken, isOnboarded }) => {
+            // 1. 토큰 + 온보딩 여부를 스토어에 저장 → status: 'authenticated' 로 전환
+            setToken(accessToken, isOnboarded);
 
-            // 2. 로그인 전 방문하려 했던 페이지로 복원, 없으면 루트로 이동
-            const redirectTo = sessionStorage.getItem('redirectAfterLogin') ?? '/';
-            sessionStorage.removeItem('redirectAfterLogin');
-            void navigate({ to: redirectTo });
-
-            // 앱 마운트 시 푸시 알림 초기화 (권한 요청 → SW 등록 → FCM 토큰 취득)
+            if (!isOnboarded) {
+                // 2a. 최초 로그인 → 온보딩 페이지로 이동.
+                //     replace: true 로 OAuth 콜백 URL을 히스토리에서 제거.
+                //     → 뒤로가기 시 OAuth 콜백 URL이 아닌 그 이전 페이지로 이동됨.
+                void navigate({ to: '/onboarding', replace: true });
+            } else {
+                // 2b. 기존 사용자 → 로그인 전 방문하려 했던 페이지로 복원
+                const redirectTo = sessionStorage.getItem('redirectAfterLogin') ?? '/';
+                sessionStorage.removeItem('redirectAfterLogin');
+                void navigate({ to: redirectTo, replace: true });
+            }
         },
 
         onError: (error) => {

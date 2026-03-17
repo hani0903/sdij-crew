@@ -1,4 +1,8 @@
 export const API_ENDPOINTS = {
+    ME: {
+        /** POST /my/onboarding — 최초 로그인 후 이름·근무반 등록 */
+        ONBOARDING: '/my/onboarding',
+    },
     // ─── 인증 ────────────────────────────────────────────────────────────────
     AUTH: {
         /** POST /oauth/kakao — 카카오 인가 코드 → AccessToken 교환 */

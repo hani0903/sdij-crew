@@ -22,6 +22,7 @@ export interface KakaoCallbackRequest {
  *   - response body 방식: refreshToken?: string 필드 추가
  */
 export interface LoginResponse {
+    isOnboarded: boolean;
     accessToken: string;
     // refreshToken?: string; // RefreshToken 도입 시 이 줄을 활성화
 }

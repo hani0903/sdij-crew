@@ -33,6 +33,12 @@ export const AUTH_ERROR_CODES = {
     UNAUTHORIZED: 'A002',
 } as const;
 
+/** 크루(사용자) 도메인 에러 코드 */
+export const CREW_ERROR_CODES = {
+    /** 이미 온보딩 완료된 크루 → 클라이언트 상태 동기화 후 토스트 안내 */
+    ALREADY_ONBOARDED: 'C005',
+} as const;
+
 // ─── 에러 코드 타입 ──────────────────────────────────────────────────────────
 
 export type ClassSessionErrorCode =
@@ -44,5 +50,7 @@ export type ResourceErrorCode =
 export type AuthErrorCode =
     (typeof AUTH_ERROR_CODES)[keyof typeof AUTH_ERROR_CODES];
 
+export type CrewErrorCode = (typeof CREW_ERROR_CODES)[keyof typeof CREW_ERROR_CODES];
+
 /** 앱 전체 에러 코드 유니온 */
-export type AppErrorCode = ClassSessionErrorCode | ResourceErrorCode | AuthErrorCode;
+export type AppErrorCode = ClassSessionErrorCode | ResourceErrorCode | AuthErrorCode | CrewErrorCode;

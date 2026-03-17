@@ -27,14 +27,28 @@ interface AuthState {
     accessToken: string | null;
     /** 인증 상태 머신. 초기값 'idle'은 아직 유효성이 확인되지 않은 상태. */
     status: AuthStatus;
+    /**
+     * 온보딩 완료 여부.
+     *   null  = 아직 알 수 없음 (idle 상태)
+     *   false = 최초 로그인, 온보딩 필요
+     *   true  = 온보딩 완료
+     *
+     * 인증(AuthStatus)과 분리된 이유:
+     *   온보딩은 보안 문제가 아니라 프로필 완성도 문제다.
+     *   사용자는 이미 authenticated 상태이며, 별도 상태로 섞으면 AuthGuard 로직이 복잡해진다.
+     */
+    isOnboarded: boolean | null;
 }
 
 interface AuthActions {
     /**
      * 로그인 성공 또는 토큰 갱신 성공 시 호출.
      * accessToken을 메모리에 저장하고 status를 'authenticated'로 전환.
+     *
+     * @param isOnboarded 로그인 시에는 서버 응답값을 전달.
+     *                    토큰 갱신(refresh) 시에는 생략 → 기존 isOnboarded 유지.
      */
-    setToken: (token: string) => void;
+    setToken: (token: string, isOnboarded?: boolean) => void;
 
     /**
      * 로그아웃 또는 401 에러로 인증 만료 시 호출.
@@ -48,6 +62,12 @@ interface AuthActions {
      * 현재는 즉시 'unauthenticated'로 전환 (RefreshToken 미구현).
      */
     initializeAuth: () => Promise<void>;
+
+    /**
+     * 온보딩 완료 시 호출.
+     * isOnboarded를 true로 전환한다.
+     */
+    completeOnboarding: () => void;
 }
 
 // ─── 스토어 ───────────────────────────────────────────────────────────────────
@@ -56,28 +76,39 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
     // ── 초기 상태 ──
     accessToken: null,
     status: 'idle',
+    isOnboarded: null,
 
     // ── 액션 ──
-    setToken: (token) => {
-        set({ accessToken: token, status: 'authenticated' });
+    setToken: (token, isOnboarded) => {
+        set((prev) => ({
+            accessToken: token,
+            status: 'authenticated',
+            // isOnboarded가 전달된 경우(최초 로그인)에만 업데이트.
+            // 생략된 경우(토큰 갱신)에는 기존 값을 유지한다.
+            isOnboarded: isOnboarded !== undefined ? isOnboarded : prev.isOnboarded,
+        }));
     },
 
     clearAuth: () => {
-        set({ accessToken: null, status: 'unauthenticated' });
+        set({ accessToken: null, status: 'unauthenticated', isOnboarded: null });
     },
 
     initializeAuth: async () => {
         // @future RefreshToken 도입 시 아래 주석을 해제하고 실제 구현으로 교체:
         //
         // try {
-        //     const { accessToken } = await authService.refresh();
-        //     set({ accessToken, status: 'authenticated' });
+        //     const { accessToken, isOnboarded } = await authService.refresh();
+        //     set({ accessToken, status: 'authenticated', isOnboarded });
         // } catch {
-        //     set({ accessToken: null, status: 'unauthenticated' });
+        //     set({ accessToken: null, status: 'unauthenticated', isOnboarded: null });
         // }
         //
         // 현재: RefreshToken 미구현 → 새로고침 시 즉시 로그인 요구.
-        set({ accessToken: null, status: 'unauthenticated' });
+        set({ accessToken: null, status: 'unauthenticated', isOnboarded: null });
+    },
+
+    completeOnboarding: () => {
+        set({ isOnboarded: true });
     },
 }));
 
@@ -91,3 +122,6 @@ export const useAuthStatus = () => useAuthStore((s) => s.status);
 
 /** clearAuth 액션만 구독 — 로그아웃 버튼 등에서 사용 */
 export const useClearAuth = () => useAuthStore((s) => s.clearAuth);
+
+/** 온보딩 완료 액션만 구독 — 온보딩 페이지에서 사용 */
+export const useCompleteOnboarding = () => useAuthStore((s) => s.completeOnboarding);
