@@ -1,5 +1,5 @@
 import { forwardRef, useMemo, useState, type InputHTMLAttributes } from 'react';
-import Input from '../Input';
+import Input from '../Input/Input';
 
 const FREQUENCY_EMAIL_DOMAINS = [
     'naver.com',

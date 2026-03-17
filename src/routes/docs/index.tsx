@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import DocsIcon from './../../assets/icons/docs.svg?react';
 import RightArrowIcon from './../../assets/icons/right-arrow.svg?react';
-import Input from '@/components/ui/Input';
+import Input from '@/components/ui/Input/Input';
 
 export const Route = createFileRoute('/docs/')({
     component: RouteComponent,
