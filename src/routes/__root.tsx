@@ -12,13 +12,15 @@
 
 import { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Outlet, createRootRoute, useLocation } from '@tanstack/react-router';
+import { Outlet, createRootRoute, useLocation, useNavigate } from '@tanstack/react-router';
 import { queryClient } from '../providers/query-client';
-import BottomNavigation from '../components/ui/BottomNavigation';
 import Header from '../components/ui/Header';
 import { useAuthStore } from '@/stores/auth.store';
 import CircularLoadingSpinner from '@/components/ui/CircularLoadingSpinner';
 import { usePushNotification } from '@/hooks/usePushNotification';
+import PageContainer from '@/components/ui/Layout/PageContainer';
+import AppLayout from '@/components/ui/Layout/AppLayout';
+import { Toaster } from 'sonner';
 
 export const Route = createRootRoute({
     component: RootComponent,
@@ -52,35 +54,47 @@ function AuthInitializer() {
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
     const status = useAuthStore((s) => s.status);
+    const isOnboarded = useAuthStore((s) => s.isOnboarded);
     const location = useLocation();
+    const navigate = useNavigate();
 
-    const shouldRedirect = status === 'unauthenticated' && !isPublicPath(location.pathname);
+    // 미인증 상태에서 보호 라우트 접근 → 카카오 로그인으로
+    const shouldRedirectToKakao = status === 'unauthenticated' && !isPublicPath(location.pathname);
 
-    // 렌더 중 side effect 금지 — useEffect로 리다이렉트 처리
+    // 인증됐지만 온보딩 미완료 → 온보딩 페이지로 강제 이동
+    // /onboarding 자체는 제외해야 무한 리다이렉트 방지
+    const shouldRedirectToOnboarding =
+        status === 'authenticated' && isOnboarded === false && location.pathname !== '/onboarding';
+
     useEffect(() => {
-        if (!shouldRedirect) return;
+        if (shouldRedirectToKakao) {
+            // 로그인 후 복귀할 경로 저장
+            sessionStorage.setItem('redirectAfterLogin', location.pathname);
 
-        // 로그인 후 복귀할 경로 저장
-        sessionStorage.setItem('redirectAfterLogin', location.pathname);
+            // 카카오 OAuth 인가 URL로 이동 (외부 도메인이므로 window.location 사용)
+            const kakaoClientId = 'f12e62fc3162b94fd60fcd0e2b706dd6';
+            const redirectUri = import.meta.env.PROD
+                ? 'https://www.sdij.site/login/oauth2/code/kakao'
+                : 'http://localhost:5173/login/oauth2/code/kakao';
 
-        // 카카오 OAuth 인가 URL로 이동
-        // router.navigate 대신 window.location.href 사용:
-        // 카카오 인가 서버는 외부 도메인이므로 TanStack Router로 이동 불가.
-        const kakaoClientId = 'f12e62fc3162b94fd60fcd0e2b706dd6';
-        const redirectUri = import.meta.env.PROD
-            ? 'https://www.sdij.site/login/oauth2/code/kakao'
-            : 'http://localhost:5173/login/oauth2/code/kakao';
+            window.location.href =
+                `https://kauth.kakao.com/oauth/authorize` +
+                `?client_id=${kakaoClientId}` +
+                `&response_type=code` +
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&scope=profile_nickname%20account_email`;
+            return;
+        }
 
-        window.location.href =
-            `https://kauth.kakao.com/oauth/authorize` +
-            `?client_id=${kakaoClientId}` +
-            `&response_type=code` +
-            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-            `&scope=profile_nickname%20account_email`;
-    }, [shouldRedirect, location.pathname]);
+        if (shouldRedirectToOnboarding) {
+            // replace: true → 히스토리 스택을 쌓지 않아 뒤로가기로 이탈해도
+            // AuthGuard가 다시 replace 이동시켜 무한 스택 증가가 없음.
+            void navigate({ to: '/onboarding', replace: true });
+        }
+    }, [shouldRedirectToKakao, shouldRedirectToOnboarding, location.pathname, navigate]);
 
     // 초기화 중 또는 리다이렉트 대기 중 — 스피너 표시
-    if (status === 'idle' || shouldRedirect) {
+    if (status === 'idle' || shouldRedirectToKakao || shouldRedirectToOnboarding) {
         return (
             <div
                 className="w-full h-full flex items-center justify-center"
@@ -103,32 +117,18 @@ function RootComponent() {
 
     return (
         <QueryClientProvider client={queryClient}>
-            {/* 앱 최초 마운트 시 인증 상태 초기화 */}
             <AuthInitializer />
-
-            <div className="w-screen h-dvh bg-gray-200 flex justify-center">
-                <div className="w-full bg-white h-full flex flex-col">
-                    <Header
-                        title="시대인재"
-                        ctaLabel="로그인"
-                        onCtaClick={() => {
-                            if (import.meta.env.PROD) {
-                                window.location.href =
-                                    'https://kauth.kakao.com/oauth/authorize?client_id=f12e62fc3162b94fd60fcd0e2b706dd6&response_type=code&redirect_uri=https://www.sdij.site/login/oauth2/code/kakao&scope=profile_nickname account_email';
-                            } else {
-                                window.location.href =
-                                    'https://kauth.kakao.com/oauth/authorize?client_id=f12e62fc3162b94fd60fcd0e2b706dd6&response_type=code&redirect_uri=http://localhost:5173/login/oauth2/code/kakao&scope=profile_nickname account_email';
-                            }
-                        }}
-                    />
+            <Toaster position="top-right" />
+            <PageContainer>
+                <AppLayout>
+                    <Header />
                     <div className="w-full flex-col flex flex-1 min-h-0 overflow-y-auto">
                         <AuthGuard>
                             <Outlet />
                         </AuthGuard>
                     </div>
-                    <BottomNavigation />
-                </div>
-            </div>
+                </AppLayout>
+            </PageContainer>
         </QueryClientProvider>
     );
 }

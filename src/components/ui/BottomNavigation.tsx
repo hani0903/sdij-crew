@@ -32,7 +32,7 @@ function NavItem({ to, icon: Icon, label }: NavItemConfig) {
 
 export default function BottomNavigation() {
     return (
-        <nav className="w-full px-5 pt-2 pb-3 border-t border-[#E2E8F0]">
+        <nav className="md:hidden w-full px-5 pt-2 pb-3 border-t border-[#E2E8F0]">
             <ul className="w-full flex items-center justify-around">
                 {NAV_ITEMS.map((item) => (
                     <NavItem key={item.to} {...item} />
