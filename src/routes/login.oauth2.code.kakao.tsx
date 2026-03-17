@@ -18,10 +18,8 @@ export const Route = createFileRoute('/login/oauth2/code/kakao')({
     component: KakaoCallbackPage,
 });
 
-// React StrictMode는 개발 환경에서 useEffect를 2회 실행한다.
-// Kakao 인가 코드는 1회용이므로 두 번째 요청은 서버 500을 유발한다.
-// 모듈 레벨 변수는 StrictMode의 언마운트-리마운트 사이클에서도 초기화되지 않으므로
-// 같은 코드로는 단 한 번만 요청한다.
+// Kakao 인가 코드는 1회용 -> 두 번째 요청은 서버 500을 유발
+// 언마운트-리마운트 사이클에서도 초기화되지 않는 모듈 레벨 변수로 StrictMode 오류 해결
 let _processedCode = '';
 
 function KakaoCallbackPage() {
