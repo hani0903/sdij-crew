@@ -19,6 +19,7 @@
 
 import { create } from 'zustand';
 import type { AuthStatus } from '@/types/auth/auth.type';
+import { authService } from '@/services/auth/auth.service';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -94,17 +95,14 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
     },
 
     initializeAuth: async () => {
-        // @future RefreshToken 도입 시 아래 주석을 해제하고 실제 구현으로 교체:
-        //
-        // try {
-        //     const { accessToken, isOnboarded } = await authService.refresh();
-        //     set({ accessToken, status: 'authenticated', isOnboarded });
-        // } catch {
-        //     set({ accessToken: null, status: 'unauthenticated', isOnboarded: null });
-        // }
-        //
-        // 현재: RefreshToken 미구현 → 새로고침 시 즉시 로그인 요구.
-        set({ accessToken: null, status: 'unauthenticated', isOnboarded: null });
+        // 새로고침 시 httpOnly cookie의 RefreshToken으로 accessToken을 자동 복구.
+        // 실패(쿠키 만료, 미로그인)하면 unauthenticated로 전환 → AuthGuard가 카카오 로그인으로 보냄.
+        try {
+            const { accessToken, isOnboarded } = await authService.refresh();
+            set({ accessToken, status: 'authenticated', isOnboarded });
+        } catch {
+            set({ accessToken: null, status: 'unauthenticated', isOnboarded: null });
+        }
     },
 
     completeOnboarding: () => {

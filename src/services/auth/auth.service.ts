@@ -17,21 +17,11 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '@/constants/api';
 import type { KakaoCallbackRequest, LoginResponse } from '@/types/auth/auth.type';
 
-// ─── 공개 엔드포인트 전용 axios 인스턴스 ──────────────────────────────────────
-// 로그인 등 인증이 필요 없는 요청에 사용.
-// withCredentials: false → 브라우저가 쿠키를 첨부하지 않음.
-// (다른 프로젝트의 refresh_token 쿠키가 서버에 전달되어 500 에러가 발생하는 것을 방지)
-const publicClient = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    timeout: 10_000,
-    withCredentials: false,
-});
-
 // ─── refresh 전용 axios 인스턴스 ─────────────────────────────────────────────
 // refresh 요청은 인터셉터가 부착된 api 인스턴스를 통과하면 안 됨.
 // (401 → refresh → 401 → refresh → 무한 루프 방지)
 // withCredentials: true → RefreshToken httpOnly cookie를 주고받기 위해 필요.
-const refreshClient = axios.create({
+const axiosClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 10_000,
     withCredentials: true,
@@ -49,7 +39,9 @@ export const authService = {
      * - 쿠키가 필요 없는 공개 엔드포인트이므로 publicClient 사용 (withCredentials: false)
      */
     kakaoCallback: (params: KakaoCallbackRequest): Promise<LoginResponse> =>
-        publicClient.post<LoginResponse>(API_ENDPOINTS.AUTH.KAKAO_CALLBACK, undefined, { params }).then((r) => r.data),
+        // withCredentials: true → 서버가 Set-Cookie로 내려주는 RefreshToken httpOnly cookie를 브라우저가 저장함.
+        // publicClient(withCredentials: false)를 쓰면 Set-Cookie 헤더가 무시되므로 refreshClient 사용.
+        axiosClient.post<LoginResponse>(API_ENDPOINTS.AUTH.KAKAO_CALLBACK, undefined, { params }).then((r) => r.data),
 
     /**
      * 로그아웃.
@@ -57,7 +49,7 @@ export const authService = {
      * 네트워크 오류가 발생해도 클라이언트 상태는 반드시 초기화해야 하므로,
      * 이 함수 호출 후 authStore.clearAuth()를 항상 실행할 것.
      */
-    logout: (): Promise<void> => refreshClient.post<void>(API_ENDPOINTS.AUTH.LOGOUT).then(() => undefined),
+    logout: (): Promise<void> => axiosClient.post<void>(API_ENDPOINTS.AUTH.LOGOUT).then(() => undefined),
 
     /**
      * AccessToken 재발급.
@@ -70,13 +62,7 @@ export const authService = {
      *
      * @throws {Error} 항상 실패 (현재 stub)
      */
-    refresh: (): Promise<LoginResponse> => {
-        // TODO: RefreshToken 도입 시 아래 주석을 해제하고 실제 구현으로 교체.
-        //
-        // return refreshClient
-        //     .post<LoginResponse>(API_ENDPOINTS.AUTH.REFRESH)
-        //     .then((r) => r.data);
-
-        return Promise.reject(new Error('[auth.service] refresh() 미구현 — RefreshToken 도입 시 활성화'));
-    },
+    refresh: (): Promise<LoginResponse> =>
+        // httpOnly cookie의 RefreshToken은 브라우저가 자동으로 요청에 첨부함 (withCredentials: true).
+        axiosClient.post<LoginResponse>(API_ENDPOINTS.AUTH.REFRESH).then((r) => r.data),
 } as const;
