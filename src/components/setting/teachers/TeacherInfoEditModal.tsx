@@ -1,6 +1,6 @@
 import Dropdown from '@/components/ui/dropdown';
 import FormField from '@/components/ui/FormField';
-import Input from '@/components/ui/Input';
+import Input from '@/components/ui/Input/Input';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import type { TeacherSetting } from '@/types/teacher/teacher.type';

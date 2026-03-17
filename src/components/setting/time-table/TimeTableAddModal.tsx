@@ -3,7 +3,7 @@ import Button from '@/components/ui/Button';
 import { useState } from 'react';
 import type { ClassSessionStatus } from '@/types/schedule/classSession.type';
 import Dropdown from '@/components/ui/dropdown';
-import Input from '@/components/ui/Input';
+import Input from '@/components/ui/Input/Input';
 import { useCreateClassSessions } from '@/hooks/queries/useCreateClassSessions';
 import PERIOD from '@/constants/period';
 import CLASS_ROOMS from '@/constants/classes';
