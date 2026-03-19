@@ -9,6 +9,7 @@ import { useFetchClassSessions } from '@/hooks/useFetchClassSessions';
 import type { ClassSession } from '@/types/schedule/classSession.type';
 import CLASS_ROOMS from '@/constants/classes';
 import PERIOD from '@/constants/period';
+import { Button } from '@/components/ui/Button/Button';
 
 export default function TimeTableTab() {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -41,6 +42,7 @@ export default function TimeTableTab() {
         timetableContent = (
             <div className="w-full flex-1 flex flex-col items-center justify-center py-16 gap-2 text-gray-3 text-sm">
                 <p>등록된 수업이 없습니다.</p>
+                <Button onClick={() => {}}>지난 주 데이터 불러오기</Button>
             </div>
         );
     } else {

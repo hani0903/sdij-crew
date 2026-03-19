@@ -26,7 +26,7 @@ function RouteComponent() {
                 <section className="w-full flex flex-col px-4 flex-1 gap-4">
                     <div className="w-full flex items-center justify-between">
                         <h3 className="font-bold text-base text-[#94A3B8]">메인 문서</h3>
-                        <span className="text-point font-medium text-sm">5 챕터</span>
+                        <span className="text-point font-medium text-sm">1 챕터</span>
                     </div>
                     <div className="w-full flex flex-col gap-4 flex-1">
                         <Link
