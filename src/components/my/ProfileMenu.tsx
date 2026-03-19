@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import DefaultProfileIcon from '@/assets/icons/default-profile.svg?react';
 import { cn } from '@/libs/cn';
+import { authService } from '@/services/auth/auth.service';
+import { useClearAuth } from '@/stores/auth.store';
 type MenuItem = { label: string; onClick: () => void; danger?: boolean; url?: string };
-const menuItems: MenuItem[] = [
-    { label: '마이페이지', onClick: () => {} },
-    { label: '설정', onClick: () => {} },
-    { label: '로그아웃', onClick: () => {}, danger: true },
-] as const;
 
 export function ProfileMenu() {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const clearAuth = useClearAuth();
 
     useEffect(() => {
         const handleOutside = (e: MouseEvent) => {
@@ -26,6 +24,19 @@ export function ProfileMenu() {
             document.removeEventListener('keydown', handleEscape);
         };
     }, []);
+
+    const menuItems: MenuItem[] = [
+        { label: '마이페이지', onClick: () => {} },
+        { label: '설정', onClick: () => {} },
+        {
+            label: '로그아웃',
+            onClick: async () => {
+                await authService.logout();
+                clearAuth();
+            },
+            danger: true,
+        },
+    ] as const;
 
     return (
         <div ref={containerRef} className="relative">

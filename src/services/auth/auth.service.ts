@@ -36,11 +36,9 @@ export const authService = {
      * 흐름: 카카오 인가 서버 → redirect_uri(?code=xxx) → 이 함수 → 백엔드 → AccessToken
      *
      * - 서버가 code, dest를 query string으로 받으므로 body가 아닌 params로 전달
-     * - 쿠키가 필요 없는 공개 엔드포인트이므로 publicClient 사용 (withCredentials: false)
+     * - withCredentials: true → 서버가 Set-Cookie로 내려주는 RefreshToken httpOnly cookie를 브라우저가 저장함
      */
     kakaoCallback: (params: KakaoCallbackRequest): Promise<LoginResponse> =>
-        // withCredentials: true → 서버가 Set-Cookie로 내려주는 RefreshToken httpOnly cookie를 브라우저가 저장함.
-        // publicClient(withCredentials: false)를 쓰면 Set-Cookie 헤더가 무시되므로 refreshClient 사용.
         axiosClient.post<LoginResponse>(API_ENDPOINTS.AUTH.KAKAO_CALLBACK, undefined, { params }).then((r) => r.data),
 
     /**
@@ -53,16 +51,8 @@ export const authService = {
 
     /**
      * AccessToken 재발급.
-     *
-     * 현재 미구현 — RefreshToken 도입 시 이 함수만 수정하면 됨.
-     *
-     * @future 구현 방향:
-     *   - httpOnly cookie 방식: refreshClient.post(REFRESH) → { accessToken } 반환
-     *   - response body 방식: refreshClient.post(REFRESH, { refreshToken }) → { accessToken } 반환
-     *
-     * @throws {Error} 항상 실패 (현재 stub)
+     * httpOnly cookie의 RefreshToken은 브라우저가 자동으로 요청에 첨부함 (withCredentials: true).
      */
     refresh: (): Promise<LoginResponse> =>
-        // httpOnly cookie의 RefreshToken은 브라우저가 자동으로 요청에 첨부함 (withCredentials: true).
         axiosClient.post<LoginResponse>(API_ENDPOINTS.AUTH.REFRESH).then((r) => r.data),
 } as const;
