@@ -19,6 +19,8 @@ export const API_ENDPOINTS = {
         BASE: '/class-sessions',
         BULK: '/class-sessions/bulk',
         TODAY: '/class-sessions/today',
+        /** POST /class-sessions/extract — 이미지에서 수업 데이터 추출 (AI OCR) */
+        EXTRACT: '/class-sessions/extract',
         CANCEL: (classSessionId: number) => `/class-sessions/${classSessionId}/cancel`,
         EDIT: (classSessionId: number) => `/class-sessions/${classSessionId}`,
     },

@@ -42,3 +42,28 @@ export interface CreateClassSessionItem {
 export interface BulkCreateClassSessionsRequest {
     sessions: CreateClassSessionItem[];
 }
+
+/**
+ * POST /class-sessions/extract 응답 — 이미지에서 AI가 추출한 수업 데이터.
+ *
+ * 서버 필드명이 CreateClassSessionItem과 다름에 주의.
+ * 매핑 책임은 호출자(TimeTableAddModal.handleExtracted)가 담당.
+ *
+ * - period: 교시 번호 문자열 (예: "1")
+ * - roomName: 강의실 이름 문자열 (예: "601호")
+ * - dayOfWeek: 요일 문자열 — 현재 UI에서 미사용 (날짜는 호출자가 부여)
+ */
+export interface ExtractedClassSession {
+    dayOfWeek: string;
+    period: string;
+    roomName: string;
+    teacherName: string;
+    /** 수업명 (bulk create 요청의 subject에 대응) */
+    className: string;
+    /** 반 (bulk create 요청의 group에 대응) */
+    classSection: string;
+    /** 현강생 수 (bulk create 요청의 inPersonCount에 대응) */
+    offlineStudentCount: number;
+    /** 인강생 수 (bulk create 요청의 onlineCount에 대응) */
+    onlineStudentCount: number;
+}

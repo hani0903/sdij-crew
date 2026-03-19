@@ -1,5 +1,9 @@
 import { API_ENDPOINTS } from '@/constants/api';
-import type { BulkCreateClassSessionsRequest, ClassSession } from '@/types/schedule/classSession.type';
+import type {
+    BulkCreateClassSessionsRequest,
+    ClassSession,
+    ExtractedClassSession,
+} from '@/types/schedule/classSession.type';
 import api from '@/libs/common/api';
 
 type getClassSessionsResponse = { classSessionResponses: ClassSession[] };
@@ -26,6 +30,23 @@ export const classSessionService = {
      */
     async bulkCreate(body: BulkCreateClassSessionsRequest): Promise<ClassSession[]> {
         const { data } = await api.post<ClassSession[]>(API_ENDPOINTS.CLASS_SESSIONS.BULK, body);
+        return data;
+    },
+
+    /**
+     * 이미지에서 수업 데이터 AI 추출.
+     * - multipart/form-data 로 파일 전송, Content-Type 헤더는 axios가 자동 설정.
+     * - AI 처리 특성상 응답이 오래 걸리므로 timeout을 60초로 개별 override.
+     * - date는 포함되지 않음 — 호출자가 선택된 날짜를 붙여 사용.
+     */
+    async extractFromImage(file: File): Promise<ExtractedClassSession[]> {
+        const formData = new FormData();
+        formData.append('file', file);
+        const { data } = await api.post<ExtractedClassSession[]>(
+            API_ENDPOINTS.CLASS_SESSIONS.EXTRACT,
+            formData,
+            { timeout: 60_000 },
+        );
         return data;
     },
 } as const;
