@@ -6,7 +6,7 @@
  * - aria-activedescendant, aria-live 영역으로 스크린리더 접근성 확보
  */
 
-import { useCallback, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import SearchInput from '@/components/ui/SearchInput';
 import { useClickOutside } from '@/hooks/common/use-click-outside';
 import { cn } from '@/libs/cn';
@@ -28,6 +28,8 @@ interface ComboboxProps<T> {
     onSelect: (item: T) => void;
     /** 검색어 변경 시 호출되는 콜백 */
     onQueryChange: (query: string) => void;
+    /** 외부에서 인풋 값을 주입할 때 사용 (AI 추출 결과 자동완성 등) */
+    value?: string;
     placeholder?: string;
     className?: string;
     /** 인풋의 aria-label */
@@ -46,11 +48,12 @@ export function Combobox<T>({
     getItemLabel,
     onSelect,
     onQueryChange,
+    value,
     placeholder,
     className,
     'aria-label': ariaLabel,
 }: ComboboxProps<T>) {
-    const [inputValue, setInputValue] = useState('');
+    const [inputValue, setInputValue] = useState(value ?? '');
     const [isOpen, setIsOpen] = useState(false);
     // 키보드로 현재 포커스된 아이템 인덱스 (-1 = 없음)
     const [activeIndex, setActiveIndex] = useState(-1);
@@ -58,6 +61,11 @@ export function Combobox<T>({
     const containerRef = useRef<HTMLDivElement>(null);
     const listboxId = useId();
     const getOptionId = (index: number) => `${listboxId}-option-${index}`;
+
+    // 외부 value 변경 시 내부 state 동기화 (AI 추출 결과 주입 등)
+    useEffect(() => {
+        if (value !== undefined) setInputValue(value);
+    }, [value]);
 
     // 컨테이너 외부 클릭 시 드롭다운 닫기
     useClickOutside(containerRef, useCallback(() => setIsOpen(false), []));
@@ -125,6 +133,7 @@ export function Combobox<T>({
     return (
         <div ref={containerRef} className={cn('relative w-full', className)}>
             <SearchInput
+                value={inputValue}
                 onQueryChange={handleQueryChange}
                 onFocus={() => inputValue.trim().length > 0 && setIsOpen(true)}
                 onKeyDown={handleKeyDown}
