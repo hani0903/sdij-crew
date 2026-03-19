@@ -6,7 +6,7 @@
  * - aria-activedescendant, aria-live 영역으로 스크린리더 접근성 확보
  */
 
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useId, useRef, useState, type KeyboardEvent } from 'react';
 import SearchInput from '@/components/ui/SearchInput';
 import { useClickOutside } from '@/hooks/common/use-click-outside';
 import { cn } from '@/libs/cn';
@@ -58,17 +58,23 @@ export function Combobox<T>({
     // 키보드로 현재 포커스된 아이템 인덱스 (-1 = 없음)
     const [activeIndex, setActiveIndex] = useState(-1);
 
+    // 외부 value 변경을 useEffect 없이 렌더 시점에 처리
+    // (React 권장 패턴: "Adjusting some state when a prop changes")
+    const [prevValue, setPrevValue] = useState(value);
+    if (prevValue !== value && value !== undefined) {
+        setPrevValue(value);
+        setInputValue(value);
+    }
+
     const containerRef = useRef<HTMLDivElement>(null);
     const listboxId = useId();
     const getOptionId = (index: number) => `${listboxId}-option-${index}`;
 
-    // 외부 value 변경 시 내부 state 동기화 (AI 추출 결과 주입 등)
-    useEffect(() => {
-        if (value !== undefined) setInputValue(value);
-    }, [value]);
-
     // 컨테이너 외부 클릭 시 드롭다운 닫기
-    useClickOutside(containerRef, useCallback(() => setIsOpen(false), []));
+    useClickOutside(
+        containerRef,
+        useCallback(() => setIsOpen(false), []),
+    );
 
     // 드롭다운 표시 조건: 포커스 상태이며 입력값이 있을 때
     const showDropdown = isOpen && inputValue.trim().length > 0;
@@ -172,7 +178,9 @@ export function Combobox<T>({
                         {isLoading && '검색 중입니다.'}
                         {isError && '검색 중 오류가 발생했습니다.'}
                         {!isLoading && !isError && visibleItems.length === 0 && '검색 결과가 없습니다.'}
-                        {!isLoading && !isError && visibleItems.length > 0 &&
+                        {!isLoading &&
+                            !isError &&
+                            visibleItems.length > 0 &&
                             `${visibleItems.length}개의 검색 결과가 있습니다.`}
                     </div>
 

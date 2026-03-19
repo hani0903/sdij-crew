@@ -56,7 +56,7 @@ export default function TeachersTab() {
 
     return (
         <div className="w-full flex-1 flex flex-col items-center justify-start gap-5 text-gray-3">
-            <SearchInput placeholder="선생님 성함을 입력하세요..." onQueryChange={setQuery} />
+            <SearchInput value={query} placeholder="선생님 성함을 입력하세요..." onQueryChange={setQuery} />
             <main className="w-full flex-1 flex flex-col gap-2">
                 <div className="w-full flex items-center justify-between gap-1">
                     <p className="flex items-center gap-1">

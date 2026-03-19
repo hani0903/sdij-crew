@@ -270,7 +270,7 @@ export default function TimeTableAddModal({ isOpen, onClose, date }: Props) {
 
                                     <FormField label="선생님">
                                         <TeacherCombobox
-                                            value={enteredClass.teacherName || undefined}
+                                            value={enteredClass.teacherName || ''}
                                             onSelect={(teacher) => updateCard(idx, { teacherName: teacher.name })}
                                         />
                                     </FormField>
