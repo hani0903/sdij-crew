@@ -98,7 +98,7 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                             {visibleClassrooms.map((classroom) => (
                                 <th
                                     key={classroom}
-                                    className="border-b border-r border-gray-2 bg-[#F1F5F9] py-2 text-center font-pretendard text-sm font-semibold text-black last:border-r-0"
+                                    className="border-b border-r border-gray-2 bg-gray-1 py-2 text-center font-pretendard text-sm font-semibold text-black last:border-r-0"
                                 >
                                     <span className="text-nowrap text-[#475569]">{classroom}</span>
                                 </th>
@@ -128,42 +128,50 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                                         <td
                                             key={classroom}
                                             className={[
-                                                'border-b border-r border-gray-2 p-1 align-top last:border-r-0 group-last:border-b-0',
+                                                // 기본 테두리/정렬
+                                                'relative border-b border-r border-gray-2 last:border-r-0 group-last:border-b-0',
+                                                // td 자체에 최소 크기만 지정, 실제 크기는 테이블 레이아웃이 결정
+                                                'min-w-[120px] min-h-[80px]',
                                                 entry ? statusCellClass[entry.status] : '',
                                             ].join(' ')}
                                         >
                                             {entry ? (
                                                 <div
                                                     onClick={() => onEntryClick?.(entry)}
-                                                    className="relative flex flex-col gap-2 min-w-[90px] min-h-[95px] overflow-hidden rounded-lg bg-point/10 p-2 px-3 cursor-pointer hover:brightness-95 transition-[filter] duration-150"
+                                                    // absolute inset-1으로 td를 4px남기고 꽉 채움
+                                                    className="absolute inset-1 flex flex-col gap-1.5 overflow-hidden rounded-lg bg-point/10 p-2 px-3 cursor-pointer hover:brightness-95 transition-[filter] duration-150"
                                                 >
-                                                    <div className="absolute h-full w-1.5 bg-point left-0 top-0" />
-                                                    {/* 강사명 */}
-                                                    <span className="text-nowrap font-pretendard text-sm font-semibold text-black">
+                                                    <div className="absolute left-0 top-0 h-full w-1.5 bg-point" />
+
+                                                    <span className="pl-1 font-pretendard text-sm font-semibold text-black leading-none">
                                                         {entry.teacherName}
                                                     </span>
-                                                    {/* 과목명 + 수강반 */}
-                                                    <div className="flex flex-col text-nowrap font-pretendard text-xs font-medium text-[#475569]">
-                                                        <span className="text-point">{entry.subject}</span>
+
+                                                    {/* 과목명 + 수강반 — text-nowrap 제거, 자연 줄바꿈 허용 */}
+                                                    <div className="pl-1 flex flex-col font-pretendard text-xs font-medium text-[#475569]">
+                                                        <span className="text-point leading-tight break-keep">
+                                                            {entry.subject}
+                                                        </span>
                                                         {entry.group && (
-                                                            <span className="ml-1 font-regular text-gray-4">
+                                                            <span className="font-regular text-gray-4">
                                                                 {entry.group}반
                                                             </span>
                                                         )}
                                                     </div>
 
-                                                    {/* 강사명 */}
-
                                                     {/* 수강 인원 */}
-                                                    <span className="inline-block mt-2 font-pretendard text-xs font-regular text-[#0F172A]">
+                                                    <span className="pl-1 mt-auto font-pretendard text-xs font-regular text-[#0F172A] leading-tight">
                                                         현강 {entry.inPersonCount}
-                                                        {entry.onlineCount > 0 && `  · 인강 ${entry.onlineCount}`}
+                                                        {entry.onlineCount > 0 && ` · 인강 ${entry.onlineCount}`}
                                                     </span>
 
                                                     <StatusBadge status={entry.status} />
                                                 </div>
                                             ) : (
-                                                <span className="text-gray-2">—</span>
+                                                // 빈 셀도 절대위치로 중앙 정렬
+                                                <div className="absolute inset-1 flex items-start justify-start">
+                                                    <span className="text-gray-2">—</span>
+                                                </div>
                                             )}
                                         </td>
                                     );
