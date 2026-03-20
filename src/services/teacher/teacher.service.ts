@@ -1,6 +1,7 @@
 import { API_ENDPOINTS } from '@/constants/api';
 import api from '@/libs/common/api';
 import type {
+    CreateTeacherParams,
     FetchAllTeachersResponse,
     TeacherSearchParams,
     TeacherSearchResponse,
@@ -26,6 +27,14 @@ export const teacherService = {
         const { data } = await api.get<TeacherSearchResponse>(API_ENDPOINTS.TEACHERS.SEARCH, {
             params,
         });
+        return data;
+    },
+    /**
+     * 강사 신규 생성
+     * POST /api/v1/teachers
+     */
+    async createTeacher(params: CreateTeacherParams): Promise<TeacherSetting> {
+        const { data } = await api.post<TeacherSetting>(API_ENDPOINTS.TEACHERS.ALL, params);
         return data;
     },
     /**

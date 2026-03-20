@@ -7,6 +7,9 @@ import SearchInput from '@/components/ui/SearchInput';
 import { useFetchAllTeachers } from '@/hooks/queries/teacher/use-fetch-all-teachers';
 import type { TeacherSetting } from '@/types/teacher/teacher.type';
 import TeacherInfoEditModal from './TeacherInfoEditModal';
+import TeacherCreateModal from './TeacherCreateModal';
+import { Button } from '@/components/ui/Button/Button';
+import { PlusIcon } from '@/assets';
 
 export default function TeachersTab() {
     // 삭제 확인 모달 상태
@@ -16,6 +19,10 @@ export default function TeachersTab() {
 
     // 편집 모달 상태
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    // 강사 추가 모달 상태
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
     // 편집 대상 강사 — null이면 모달 미렌더링
     const [selectedTeacher, setSelectedTeacher] = useState<TeacherSetting | null>(null);
 
@@ -56,7 +63,13 @@ export default function TeachersTab() {
 
     return (
         <div className="w-full flex-1 flex flex-col items-center justify-start gap-5 text-gray-3">
-            <SearchInput value={query} placeholder="선생님 성함을 입력하세요..." onQueryChange={setQuery} />
+            <div className="w-full flex items-center gap-2">
+                <SearchInput value={query} placeholder="선생님 성함을 입력하세요..." onQueryChange={setQuery} />
+                {/* 강사 추가 버튼 */}
+                <Button onClick={() => setIsAddModalOpen(true)}>
+                    <PlusIcon />
+                </Button>
+            </div>
             <main className="w-full flex-1 flex flex-col gap-2">
                 <div className="w-full flex items-center justify-between gap-1">
                     <p className="flex items-center gap-1">
@@ -114,14 +127,17 @@ export default function TeachersTab() {
                 </div>
             </TeacherDeleteWarningModal>
 
-            {/* 편집 모달 — 편집 대상 강사가 선택됐을 때만 렌더링 */}
-            {selectedTeacher && (
+            {/* 편집 모달 — 편집 대상 강사가 선택됐을 때만 렌더링 (타입 안전) */}
+            {selectedTeacher !== null && (
                 <TeacherInfoEditModal
                     teacherData={selectedTeacher}
                     isOpen={isEditModalOpen}
                     onClose={handleEditModalClose}
                 />
             )}
+
+            {/* 강사 추가 모달 */}
+            <TeacherCreateModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
         </div>
     );
 }

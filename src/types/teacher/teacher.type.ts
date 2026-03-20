@@ -31,6 +31,18 @@ export type TeacherSearchResponse = { teacherSimpleDtoList: Teacher[] };
 
 export type FetchAllTeachersResponse = { teacherResponses: TeacherSetting[] };
 
+/** POST /api/v1/teachers 요청 본문 — 강사 신규 생성 */
+export interface CreateTeacherParams {
+    name: string;
+    chalkType: 'ACADEMY' | 'MIXED' | 'PERSONAL';
+    chalkDetail: string;
+    eraserDetail?: string;
+    micType: 'ACADEMY' | 'PERSONAL';
+    hasPpt: boolean;
+    notes?: string;
+    email?: string;
+}
+
 /** PUT /api/teachers/:id 요청 본문 */
 export interface UpdateTeacherParams {
     name: string;
