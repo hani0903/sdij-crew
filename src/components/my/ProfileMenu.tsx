@@ -26,8 +26,8 @@ export function ProfileMenu() {
     }, []);
 
     const menuItems: MenuItem[] = [
-        { label: '마이페이지', onClick: () => {} },
-        { label: '설정', onClick: () => {} },
+        // { label: '마이페이지', onClick: () => {} },
+        // { label: '설정', onClick: () => {} },
         {
             label: '로그아웃',
             onClick: async () => {
