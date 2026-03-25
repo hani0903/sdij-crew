@@ -11,6 +11,7 @@ interface NavItemConfig {
 const NAV_ITEMS: NavItemConfig[] = [
     { to: '/', icon: CalendarIcon, label: '시간표' },
     // { to: '/random', icon: DiceIcon, label: '사다리' },
+    // { to: '/tasks', icon: CheckBoxIcon, label: '할 일' },
     { to: '/docs', icon: DocsIcon, label: '문서' },
     { to: '/setting', icon: SettingIcon, label: '관리' },
 ];

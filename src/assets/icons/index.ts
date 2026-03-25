@@ -8,3 +8,4 @@ export { default as SettingIcon } from './ic-setting.svg?react';
 export { default as RightArrowIcon } from './right-arrow.svg?react';
 export { default as PlusIcon } from './ic-plus.svg?react';
 export { default as DropdownIcon } from './dropdown-arrow.svg?react';
+export { default as CheckBoxIcon } from './ic-check.svg?react';
