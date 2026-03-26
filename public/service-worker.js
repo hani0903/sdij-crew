@@ -1,7 +1,12 @@
-const CACHE_NAME = 'v1-cache';
-const urlsToCache = [
-    '/',
-    '/index.html',
+// 빌드 배포 시 이 버전을 올리면 activate에서 구 캐시를 자동으로 삭제한다.
+// index.html이 새 JS 파일명을 참조하기 전에 구 캐시가 남아있으면
+// "Failed to load module script: text/html" MIME 에러가 발생하기 때문이다.
+const CACHE_NAME = 'v2-assets';
+
+// install: 정적 아이콘만 사전 캐싱 — index.html은 절대 캐싱하지 않는다.
+// index.html을 캐싱하면 새 빌드 배포 후 구 JS 해시를 참조하는 stale HTML이
+// 서빙되어 MIME 에러로 앱 전체가 흰 화면이 되는 버그가 발생한다.
+const PRECACHE_ASSETS = [
     '/manifest.json',
     '/icons/since-128x128.png',
     '/icons/since-144x144.png',
@@ -9,19 +14,13 @@ const urlsToCache = [
     '/icons/since-192x192.png',
     '/icons/since-256x256.png',
     '/icons/since-512x512.png',
-    // '/icon/Favicon.png',
-    // '/icon/apple-touch-icon-180x180.png',
 ];
 
-// 캐시 저장 함수
-const addResourcesToCache = async (resources) => {
-    const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(resources);
-};
-
 self.addEventListener('install', (event) => {
-    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)));
-    self.skipWaiting(); // 캐시 완료 후 즉시 활성화
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS)),
+    );
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -38,16 +37,45 @@ self.addEventListener('activate', (event) => {
                     }),
                 ),
             )
-            .then(() => self.clients.claim()), // ← 이게 있어야 새 SW가 즉시 페이지를 제어
+            .then(() => self.clients.claim()),
     );
 });
 
 self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            return cachedResponse || fetch(event.request);
-        }),
-    );
+    const { request } = event;
+    const url = new URL(request.url);
+
+    // ── 1. 네비게이션 요청(HTML) → Network First ──────────────────────────────
+    // index.html은 항상 서버에서 최신 버전을 가져온다.
+    // 캐싱하면 새 빌드 배포 후 구 JS 해시를 참조해 MIME 에러가 발생한다.
+    // 오프라인일 때만 캐시 fallback을 사용한다.
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            fetch(request).catch(() => caches.match('/index.html')),
+        );
+        return;
+    }
+
+    // ── 2. Vite content-hash 에셋(/assets/) → Cache First ────────────────────
+    // 파일명에 해시가 포함되어 있어 내용이 동일하면 URL도 동일하다 (불변).
+    // 한 번 캐싱하면 영구적으로 재사용해도 안전하다.
+    if (url.pathname.startsWith('/assets/')) {
+        event.respondWith(
+            caches.match(request).then((cached) => {
+                if (cached) return cached;
+                return fetch(request).then((response) => {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+                    return response;
+                });
+            }),
+        );
+        return;
+    }
+
+    // ── 3. 나머지 요청(API 등) → Network Only ────────────────────────────────
+    // API 응답은 항상 최신이어야 하므로 캐싱하지 않는다.
+    event.respondWith(fetch(request));
 });
 
 self.addEventListener('push', (event) => {
