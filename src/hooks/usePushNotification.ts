@@ -100,12 +100,10 @@ export function usePushNotification(): void {
 
                 if (result === 'default') {
                     // TODO: 프로젝트에서 사용하는 Modal UI를 호출하세요.
-                    const wantToEnable = window.confirm(
-                        "알림 권한이 차단되어 있습니다. 알림을 받으시려면 브라우저 설정에서 권한을 '허용'으로 변경해주세요. 설정 방법을 확인하시겠습니까?",
-                    );
+                    const wantToEnable = window.confirm('입실/퇴실 시간 알림을 받고 싶으신가요?');
 
                     if (wantToEnable) {
-                        requestAndRegisterToken();
+                        await requestAndRegisterToken();
                     }
                 }
             };
