@@ -1,20 +1,6 @@
 import { Link } from '@tanstack/react-router';
-import type { FC, SVGProps } from 'react';
-import { CalendarIcon, DocsIcon, SettingIcon } from '@/assets';
-
-interface NavItemConfig {
-    to: string;
-    icon: FC<SVGProps<SVGSVGElement>>;
-    label: string;
-}
-
-const NAV_ITEMS: NavItemConfig[] = [
-    { to: '/', icon: CalendarIcon, label: '시간표' },
-    // { to: '/random', icon: DiceIcon, label: '사다리' },
-    // { to: '/tasks', icon: CheckBoxIcon, label: '할 일' },
-    { to: '/docs', icon: DocsIcon, label: '문서' },
-    { to: '/setting', icon: SettingIcon, label: '관리' },
-];
+import { NAV_ITEMS } from '@/constants/nav';
+import type { NavItemConfig } from '@/constants/nav';
 
 const NAV_LINK_CLASS = 'flex flex-col justify-between items-center text-medium font-14 text-[#94A3B8] h-12';
 const NAV_LINK_ACTIVE_CLASS = 'text-point font-bold';

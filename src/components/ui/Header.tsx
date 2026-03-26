@@ -1,6 +1,8 @@
+import { Link } from '@tanstack/react-router';
 import { useAuthStatus } from '@/stores/auth.store';
 import Button from './Button';
 import { ProfileMenu } from '../my/ProfileMenu';
+import { NAV_ITEMS } from '@/constants/nav';
 
 export interface NavItem {
     /** 메뉴에 표시될 텍스트 */
@@ -28,7 +30,19 @@ export default function Header() {
                 {/* 좌측: 서비스 이름 */}
                 <span className="inline-block font-pretendard text-xl font-bold text-black">시대인재</span>
 
-                {/* 중앙: 네비게이션 메뉴 */}
+                {/* 중앙: 데스크탑 네비게이션 — BottomNavigation이 숨겨지는 md 이상에서만 표시 */}
+                <nav className="hidden md:flex items-center gap-1 flex-1">
+                    {NAV_ITEMS.map((item) => (
+                        <Link
+                            key={item.to}
+                            to={item.to as never}
+                            className="px-3 py-2 rounded-lg text-sm font-medium text-[#94A3B8]  transition-colors"
+                            activeProps={{ className: 'text-point font-bold hover:text-point/80' }}
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+                </nav>
 
                 {status === 'unauthenticated' ? (
                     <Button variant="ghost" size="sm" className="p-2" onClick={handleClickLogin}>
