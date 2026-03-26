@@ -6,11 +6,14 @@ import SessionEditModal from './SessionEditModal';
 import Timetable from '@/components/schedule/Timetable';
 import CircularLoadingSpinner from '@/components/ui/CircularLoadingSpinner';
 import { useFetchClassSessions } from '@/hooks/useFetchClassSessions';
+import { useDeleteClassSession } from '@/hooks/queries/class-session/use-delete-class-session';
+import { WarningModal } from '@/components/ui/WarningModal';
 import type { ClassSession } from '@/types/schedule/classSession.type';
 import CLASS_ROOMS from '@/constants/classes';
 import PERIOD from '@/constants/period';
 import { Button } from '@/components/ui/Button/Button';
 import { KebabMenu } from '@/components/ui/KebabMenu/KebabMenu';
+import { toast } from 'sonner';
 
 export default function TimeTableTab() {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -18,8 +21,11 @@ export default function TimeTableTab() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedSession, setSelectedSession] = useState<ClassSession | null>(null);
+    // 삭제 대상 수업 — null이면 삭제 모달 미렌더링
+    const [deleteTargetSession, setDeleteTargetSession] = useState<ClassSession | null>(null);
 
     const { data: sessions = [], isPending, isError } = useFetchClassSessions(selectedDate);
+    const { mutate: deleteClassSession, isPending: isDeleting } = useDeleteClassSession();
 
     // 현재 날짜의 수업이 있는 교실만 필터링하여 빈 열 제거
     const existingClassrooms = CLASS_ROOMS.filter((room) => sessions.some((session) => session.roomNumber === room));
@@ -30,7 +36,21 @@ export default function TimeTableTab() {
     };
 
     const handleDelete = (entry: ClassSession) => {
-        console.log('삭제', entry);
+        setDeleteTargetSession(entry);
+    };
+
+    const handleDeleteModalClose = () => {
+        setDeleteTargetSession(null);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (deleteTargetSession === null) return;
+        deleteClassSession(deleteTargetSession.id, {
+            onSuccess: () => {
+                handleDeleteModalClose();
+                toast.success('수업을 삭제하였습니다.');
+            },
+        });
     };
 
     // renderEntry: 각 셀을 기본 콘텐츠 + KebabMenu 조합으로 렌더링
@@ -124,6 +144,22 @@ export default function TimeTableTab() {
                     session={selectedSession}
                 />
             )}
+
+            {/* 수업 삭제 확인 모달 — deleteTargetSession이 있을 때만 열림 */}
+            <WarningModal
+                isOpen={deleteTargetSession !== null}
+                onClose={handleDeleteModalClose}
+                title="정말 삭제하실건가요?"
+                description="선택한 수업 데이터를 삭제하시겠습니까? 삭제된 데이터는 되돌릴 수 없습니다."
+                highlight={
+                    deleteTargetSession !== null
+                        ? `${deleteTargetSession.periodNumber}교시 ${deleteTargetSession.teacherName} 강사님`
+                        : undefined
+                }
+                confirmLabel="삭제하기"
+                onConfirm={handleDeleteConfirm}
+                isLoading={isDeleting}
+            />
         </div>
     );
 }

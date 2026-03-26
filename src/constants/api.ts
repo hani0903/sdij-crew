@@ -30,6 +30,8 @@ export const API_ENDPOINTS = {
         SEARCH: '/teachers/search',
         /** PUT /api/teachers/:id — 강사 정보 수정 */
         UPDATE: (id: number) => `/teachers/${id}`,
+        /** DELETE /api/teachers/:id — 강사 삭제 */
+        DELETE: (id: number) => `/teachers/${id}`,
     },
 } as const;
 

@@ -45,4 +45,11 @@ export const teacherService = {
         const { data } = await api.put<TeacherSetting>(API_ENDPOINTS.TEACHERS.UPDATE(id), params);
         return data;
     },
+    /**
+     * 강사 삭제
+     * DELETE /api/teachers/:id
+     */
+    async deleteTeacher(id: number): Promise<void> {
+        await api.delete(API_ENDPOINTS.TEACHERS.DELETE(id));
+    },
 } as const;
