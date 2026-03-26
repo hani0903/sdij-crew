@@ -30,6 +30,46 @@ import { getDeviceToken } from '@/libs/getDeviceToken';
 import api from '@/libs/common/api';
 
 /**
+ * 사용자의 직접적인 클릭 액션에 의해 호출되어야 함
+ * (예: 모달의 '확인' 버튼 onClick)
+ */
+async function requestAndRegisterToken() {
+    try {
+        // 1. 브라우저 권한 요청 팝업 실행
+        // (사용자 액션 내부이므로 브라우저가 차단하지 않고 팝업을 띄움)
+        const permission = await Notification.requestPermission();
+
+        if (permission !== 'granted') {
+            console.warn('[푸시 알림] 사용자가 권한을 거부했거나 닫았습니다.');
+            return;
+        }
+
+        // 2. 서비스 워커 등록 확인
+        // register()는 이전에 등록된 게 있다면 그걸 재사용함
+        const registration = await register();
+
+        // 3. FCM 토큰 취득
+        const token = await getDeviceToken(registration);
+
+        if (!token) {
+            console.error('[푸시 알림] 토큰을 생성할 수 없습니다.');
+            return;
+        }
+
+        // 4. 서버에 토큰 전송 (백엔드 API 호출)
+        await api.patch('/my/fcm-token', { fcmToken: token });
+
+        if (import.meta.env.DEV) {
+            console.log('[푸시 알림] 성공적으로 등록되었습니다:', token);
+        }
+
+        alert('이제부터 알림을 받아보실 수 있습니다!');
+    } catch (error) {
+        console.error('[푸시 알림] 등록 프로세스 중 오류 발생:', error);
+    }
+}
+
+/**
  * 인증 상태에 따라 푸시 알림 초기화와 토큰 정리를 수행하는 훅.
  * RootComponent에서 단 한 번 호출한다.
  */
@@ -46,9 +86,31 @@ export function usePushNotification(): void {
             // 예: 컴포넌트 언마운트나 status 재변경 시 이전 비동기 흐름을 무효화
             let cancelled = false;
 
-            void initializeFCM(cancelled)
-                .then(() => {})
-                .catch(() => {});
+            const setup = async () => {
+                const result = await initializeFCM(cancelled);
+                if (cancelled) return;
+
+                // 권한이 거부(denied)된 경우 사용자에게 안내
+                if (result === 'denied') {
+                    // TODO: 프로젝트에서 사용하는 Modal UI를 호출하세요.
+                    window.confirm(
+                        "알림 권한이 차단되어 있습니다. 알림을 받으시려면 브라우저 설정에서 권한을 '허용'으로 변경해주세요. 설정 방법을 확인하시겠습니까?",
+                    );
+                }
+
+                if (result === 'default') {
+                    // TODO: 프로젝트에서 사용하는 Modal UI를 호출하세요.
+                    const wantToEnable = window.confirm(
+                        "알림 권한이 차단되어 있습니다. 알림을 받으시려면 브라우저 설정에서 권한을 '허용'으로 변경해주세요. 설정 방법을 확인하시겠습니까?",
+                    );
+
+                    if (wantToEnable) {
+                        requestAndRegisterToken();
+                    }
+                }
+            };
+
+            void setup();
 
             // cleanup: 다음 status 변경 또는 언마운트 시 이전 흐름 취소
             return () => {
@@ -70,28 +132,28 @@ export function usePushNotification(): void {
 // SW 등록은 main.tsx에서 이미 완료되어 있다.
 // 여기서는 이미 등록된 SW를 가져와 FCM 토큰 발급에 사용한다.
 
-async function initializeFCM(cancelled: boolean): Promise<void> {
-    // Step 1: 알림 권한 요청
-    // 이미 결정된 권한('granted' | 'denied')이면 브라우저가 프롬프트를 띄우지 않는다.
-    let permission: NotificationPermission;
-    try {
-        permission = await Notification.requestPermission();
-    } catch (error) {
-        // Firefox 구형 버전은 콜백 기반 API만 지원하는 경우가 있음
-        if (import.meta.env.DEV) {
-            console.error('[푸시 알림] 권한 요청 중 오류 발생:', error);
-        }
-        return;
+async function initializeFCM(cancelled: boolean): Promise<'granted' | 'denied' | 'default' | 'error' | void> {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+
+    // 현재 상태 확인
+    let permission = Notification.permission;
+
+    // 1. 이미 거부된 상태라면 바로 알림을 띄울 수 없음을 알림
+    if (permission === 'denied') {
+        return 'denied';
     }
 
-    // 이전 status 변경으로 인해 이 흐름이 무효화됐으면 중단
+    // 2. 권한 요청 (default 상태일 때 실행됨)
+    try {
+        permission = await Notification.requestPermission();
+    } catch {
+        return 'error';
+    }
+
     if (cancelled) return;
 
     if (permission !== 'granted') {
-        if (import.meta.env.DEV) {
-            console.info('[푸시 알림] 권한이 거부되었습니다. 알림을 초기화하지 않습니다.');
-        }
-        return;
+        return permission; // 'denied' 또는 'default'
     }
 
     // Step 2: 이미 등록된 SW를 가져온다 (main.tsx에서 앱 로드 시 등록 완료)
