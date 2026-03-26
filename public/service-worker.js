@@ -17,9 +17,7 @@ const PRECACHE_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS)),
-    );
+    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS)));
     self.skipWaiting();
 });
 
@@ -50,9 +48,7 @@ self.addEventListener('fetch', (event) => {
     // 캐싱하면 새 빌드 배포 후 구 JS 해시를 참조해 MIME 에러가 발생한다.
     // 오프라인일 때만 캐시 fallback을 사용한다.
     if (request.mode === 'navigate') {
-        event.respondWith(
-            fetch(request).catch(() => caches.match('/index.html')),
-        );
+        event.respondWith(fetch(request).catch(() => caches.match('/index.html')));
         return;
     }
 
@@ -78,22 +74,13 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(request));
 });
 
-self.addEventListener('push', (event) => {
-    if (!event.data) return;
-
-    const data = event.data.json();
-    const notification = data.notification ?? data; // FCM 포맷에 따라 다를 수 있음
-
-    const title = notification.title ?? '알림';
-    const options = {
-        body: notification.body ?? '',
-        icon: '/icons/since-192x192.png', // 알림 아이콘
-        badge: '/icons/since-128x128.png', // 안드로이드 상단바 아이콘
-        data: data.data ?? {}, // 클릭 시 전달할 커스텀 데이터
-    };
-
-    event.waitUntil(self.registration.showNotification(title, options));
-});
+// push 이벤트 핸들러를 제거한 이유:
+//   Firebase SDK(firebase-messaging-compat.js)가 push 이벤트를 가로채
+//   onBackgroundMessage 콜백으로 전달한다.
+//   커스텀 push 핸들러를 같이 두면 동일한 메시지에 대해 알림이 2회 발생하고,
+//   백엔드가 notification 페이로드를 포함하면 FCM 자동 알림까지 더해져 3회가 된다.
+//   onBackgroundMessage 콜백이 등록되어 있으면 FCM 자동 알림이 억제되므로
+//   아래 onBackgroundMessage 단독으로 알림 1회만 표시된다.
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
@@ -129,13 +116,12 @@ const messaging = firebase.messaging();
 
 // 백그라운드 메시지 수신 처리
 messaging.onBackgroundMessage((payload) => {
-    const notification = payload.notification ?? payload;
-    const title = notification.title ?? '알림';
+    const { title = '알림', body = '', ...rest } = payload.data ?? {};
     const options = {
         body: notification.body ?? '',
         icon: '/icons/since-192x192.png',
         badge: '/icons/since-128x128.png',
-        data: payload.data ?? {},
+        data: rest,
     };
     self.registration.showNotification(title, options);
 });

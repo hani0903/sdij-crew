@@ -46,7 +46,9 @@ export function usePushNotification(): void {
             // 예: 컴포넌트 언마운트나 status 재변경 시 이전 비동기 흐름을 무효화
             let cancelled = false;
 
-            void initializeFCM(cancelled).then(() => {}).catch(() => {});
+            void initializeFCM(cancelled)
+                .then(() => {})
+                .catch(() => {});
 
             // cleanup: 다음 status 변경 또는 언마운트 시 이전 흐름 취소
             return () => {
@@ -129,6 +131,7 @@ async function initializeFCM(cancelled: boolean): Promise<void> {
         await api.patch('/my/fcm-token', { fcmToken: token });
         if (import.meta.env.DEV) {
             console.log('[푸시 알림] 초기화 완료. FCM 토큰을 서버에 전송했습니다.');
+            console.log(`token: ${token}`);
         }
     } catch (error) {
         if (import.meta.env.DEV) {
