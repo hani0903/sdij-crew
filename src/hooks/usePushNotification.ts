@@ -2,26 +2,23 @@
 //
 // 역할:
 //   1. 인증 상태(status)를 구독하여 'authenticated'로 전환될 때 FCM을 초기화한다.
-//   2. 알림 권한을 요청한다.
-//   3. 이미 등록된 SW를 재사용해 FCM 디바이스 토큰을 취득한다.
-//      (SW 등록 자체는 main.tsx의 앱 로드 시점에 완료되어 있음)
-//   4. 취득한 토큰을 서버에 전송한다.
-//   5. 로그아웃('unauthenticated' 전환) 시 서버의 FCM 토큰을 삭제하고
+//   2. 이미 'granted' 상태라면 자동으로 토큰을 취득하고 서버에 전송한다.
+//   3. 'default' 또는 'denied' 상태라면 권한 요청 없이 notificationStatus를 반환하여
+//      호출 측(배너 UI)이 user gesture 기반으로 권한을 요청하도록 위임한다.
+//   4. 로그아웃('unauthenticated' 전환) 시 서버의 FCM 토큰을 삭제하고
 //      Firebase의 로컬 토큰도 제거한다.
 //
 // 사용 위치:
 //   - __root.tsx의 RootComponent에서 단 한 번 호출한다.
-//   - 훅이 내부적으로 status를 구독하므로, 호출 측에서 조건부 렌더링이나
-//     더미 컴포넌트 패턴을 쓸 필요가 없다.
 //
 // 설계 원칙:
-//   - SW 등록(register)과 FCM 초기화를 분리한다.
-//     SW 등록: main.tsx에서 앱 로드 즉시 실행 (인증 무관)
-//     FCM 초기화: 인증 이후에만 실행 (토큰은 인증된 사용자와 연결되어야 함)
+//   - iOS에서는 user gesture 없이 Notification.requestPermission()을 호출하면
+//     권한 다이얼로그가 동작하지 않는다. 따라서 'default' 상태에서는 권한을
+//     자동 요청하지 않고 notificationStatus를 반환하여 배너가 담당하도록 한다.
+//   - requestAndRegisterToken은 export되어 배너 버튼의 onClick에서 직접 호출된다.
 //   - useEffect cleanup에서 취소 플래그(cancelled)를 사용해 race condition을 방지한다.
-//     예: 빠르게 로그인→로그아웃→로그인 시 이전 비동기 흐름이 덮어쓰는 문제 방지.
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { deleteToken } from 'firebase/messaging';
 import { messaging } from '@/core/notification/settingFCM';
 import { useAuthStatus } from '@/stores/auth.store';
@@ -29,19 +26,23 @@ import { register } from '@/libs/ServiceWorkerRegistration';
 import { getDeviceToken } from '@/libs/getDeviceToken';
 import api from '@/libs/common/api';
 
+export type NotificationStatus = 'granted' | 'default' | 'denied' | null;
+
 /**
- * 사용자의 직접적인 클릭 액션에 의해 호출되어야 함
- * (예: 모달의 '확인' 버튼 onClick)
+ * 사용자의 직접적인 클릭 액션에 의해 호출되어야 함.
+ * 배너의 "알림 허용하기" 버튼 onClick에서 직접 호출한다.
+ *
+ * @returns 최종 권한 상태. 호출 측에서 status 갱신에 활용할 수 있다.
  */
-async function requestAndRegisterToken() {
+export async function requestAndRegisterToken(): Promise<NotificationStatus> {
     try {
         // 1. 브라우저 권한 요청 팝업 실행
-        // (사용자 액션 내부이므로 브라우저가 차단하지 않고 팝업을 띄움)
+        // (user gesture 내부이므로 iOS Safari도 팝업을 정상적으로 띄움)
         const permission = await Notification.requestPermission();
 
         if (permission !== 'granted') {
             console.warn('[푸시 알림] 사용자가 권한을 거부했거나 닫았습니다.');
-            return;
+            return permission as NotificationStatus;
         }
 
         // 2. 서비스 워커 등록 확인
@@ -53,7 +54,7 @@ async function requestAndRegisterToken() {
 
         if (!token) {
             console.error('[푸시 알림] 토큰을 생성할 수 없습니다.');
-            return;
+            return 'granted';
         }
 
         // 4. 서버에 토큰 전송 (백엔드 API 호출)
@@ -63,24 +64,41 @@ async function requestAndRegisterToken() {
             console.log('[푸시 알림] 성공적으로 등록되었습니다:', token);
         }
 
-        alert('이제부터 알림을 받아보실 수 있습니다!');
+        return 'granted';
     } catch (error) {
         console.error('[푸시 알림] 등록 프로세스 중 오류 발생:', error);
+        return Notification.permission as NotificationStatus;
     }
+}
+
+// ─── 반환 타입 ────────────────────────────────────────────────────────────────
+
+interface UsePushNotificationResult {
+    /**
+     * 현재 알림 권한 상태.
+     * - null: 브라우저가 알림을 지원하지 않거나 아직 초기화되지 않은 상태
+     * - 'granted': 권한 허용됨
+     * - 'default': 아직 권한 요청 전 (배너를 통해 user gesture로 요청 필요)
+     * - 'denied': 사용자가 차단함 (설정에서 직접 변경해야 함)
+     */
+    notificationStatus: NotificationStatus;
+    /** 배너에서 권한 요청 후 status를 외부에서 갱신하기 위한 setter */
+    setNotificationStatus: (status: NotificationStatus) => void;
 }
 
 /**
  * 인증 상태에 따라 푸시 알림 초기화와 토큰 정리를 수행하는 훅.
  * RootComponent에서 단 한 번 호출한다.
  */
-export function usePushNotification(): void {
+export function usePushNotification(): UsePushNotificationResult {
     const status = useAuthStatus();
+    const [notificationStatus, setNotificationStatus] = useState<NotificationStatus>(null);
 
     useEffect(() => {
         // 브라우저가 알림을 지원하지 않으면 아무것도 하지 않는다
         if (typeof window === 'undefined' || !('Notification' in window)) return;
 
-        // 인증된 경우: FCM 토큰 취득 및 서버 등록
+        // 인증된 경우: FCM 초기화
         if (status === 'authenticated') {
             // race condition 방지용 취소 플래그
             // 예: 컴포넌트 언마운트나 status 재변경 시 이전 비동기 흐름을 무효화
@@ -90,21 +108,8 @@ export function usePushNotification(): void {
                 const result = await initializeFCM(cancelled);
                 if (cancelled) return;
 
-                // 권한이 거부(denied)된 경우 사용자에게 안내
-                if (result === 'denied') {
-                    // TODO: 프로젝트에서 사용하는 Modal UI를 호출하세요.
-                    window.confirm(
-                        "알림 권한이 차단되어 있습니다. 알림을 받으시려면 브라우저 설정에서 권한을 '허용'으로 변경해주세요. 설정 방법을 확인하시겠습니까?",
-                    );
-                }
-
-                if (result === 'default') {
-                    // TODO: 프로젝트에서 사용하는 Modal UI를 호출하세요.
-                    const wantToEnable = window.confirm('입실/퇴실 시간 알림을 받고 싶으신가요?');
-
-                    if (wantToEnable) {
-                        await requestAndRegisterToken();
-                    }
+                if (result != null) {
+                    setNotificationStatus(result);
                 }
             };
 
@@ -118,44 +123,39 @@ export function usePushNotification(): void {
 
         // 비인증 상태로 전환된 경우: 로그아웃 처리 — FCM 토큰 정리
         if (status === 'unauthenticated') {
+            setNotificationStatus(null);
             void cleanupFCM();
         }
     }, [status]);
-    // status가 변경될 때마다 실행됨.
-    // 로그아웃 후 재로그인, RefreshToken 복구 등 어떤 인증 경로도 자동 처리됨.
+
+    return { notificationStatus, setNotificationStatus };
 }
 
 // ─── 내부 함수: FCM 초기화 흐름 ───────────────────────────────────────────────
 //
-// SW 등록은 main.tsx에서 이미 완료되어 있다.
-// 여기서는 이미 등록된 SW를 가져와 FCM 토큰 발급에 사용한다.
+// 변경 사항:
+//   - 'default' 상태일 때 Notification.requestPermission()을 호출하지 않는다.
+//     권한 요청은 배너 버튼(user gesture)에서 requestAndRegisterToken()을 통해 이루어진다.
+//   - 'granted' 상태일 때만 자동으로 토큰을 취득하고 서버에 전송한다.
 
-async function initializeFCM(cancelled: boolean): Promise<'granted' | 'denied' | 'default' | 'error' | void> {
+async function initializeFCM(cancelled: boolean): Promise<NotificationStatus | void> {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
 
-    // 현재 상태 확인
-    let permission = Notification.permission;
+    const permission = Notification.permission;
 
-    // 1. 이미 거부된 상태라면 바로 알림을 띄울 수 없음을 알림
+    // 1. 이미 거부된 상태라면 배너에서 안내만 하고 끝
     if (permission === 'denied') {
         return 'denied';
     }
 
-    // 2. 권한 요청 (default 상태일 때 실행됨)
-    try {
-        permission = await Notification.requestPermission();
-    } catch {
-        return 'error';
+    // 2. 아직 권한 요청 전 → 자동으로 요청하지 않고 상태만 반환
+    //    배너의 user gesture(onClick)에서 requestAndRegisterToken()이 담당한다
+    if (permission === 'default') {
+        return 'default';
     }
 
-    if (cancelled) return;
-
-    if (permission !== 'granted') {
-        return permission; // 'denied' 또는 'default'
-    }
-
-    // Step 2: 이미 등록된 SW를 가져온다 (main.tsx에서 앱 로드 시 등록 완료)
-    // register()는 모듈 레벨에서 Promise를 캐싱하므로 재등록 없이 즉시 반환된다.
+    // 3. 이미 허용된 상태 → 자동으로 토큰 취득 및 서버 전송
+    // SW 등록은 main.tsx에서 이미 완료되어 있다.
     let registration: ServiceWorkerRegistration;
     try {
         registration = await register();
@@ -166,10 +166,8 @@ async function initializeFCM(cancelled: boolean): Promise<'granted' | 'denied' |
         return;
     }
 
-    // race condition 확인: 권한 요청 + SW 대기 중 status가 변경됐을 수 있음
     if (cancelled) return;
 
-    // Step 3: FCM 디바이스 토큰 취득
     let token: string | null;
     try {
         token = await getDeviceToken(registration);
@@ -183,10 +181,9 @@ async function initializeFCM(cancelled: boolean): Promise<'granted' | 'denied' |
     if (cancelled) return;
 
     if (!token) {
-        return;
+        return 'granted';
     }
 
-    // Step 4: FCM 토큰을 서버에 전송
     try {
         await api.patch('/my/fcm-token', { fcmToken: token });
         if (import.meta.env.DEV) {
@@ -198,6 +195,8 @@ async function initializeFCM(cancelled: boolean): Promise<'granted' | 'denied' |
             console.error('[푸시 알림] 토큰 서버 전송 실패:', error);
         }
     }
+
+    return 'granted';
 }
 
 // ─── 내부 함수: 로그아웃 시 FCM 토큰 정리 ────────────────────────────────────

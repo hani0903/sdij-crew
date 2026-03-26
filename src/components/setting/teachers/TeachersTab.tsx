@@ -8,6 +8,7 @@ import { useFetchAllTeachers } from '@/hooks/queries/teacher/use-fetch-all-teach
 import { useDeleteTeacher } from '@/hooks/queries/teacher/use-delete-teacher';
 import type { TeacherSetting } from '@/types/teacher/teacher.type';
 import TeacherInfoEditModal from './TeacherInfoEditModal';
+import TeacherInfoViewModal from './TeacherInfoViewModal';
 import TeacherCreateModal from './TeacherCreateModal';
 import { Button } from '@/components/ui/Button/Button';
 import { PlusIcon } from '@/assets';
@@ -19,13 +20,16 @@ export default function TeachersTab() {
     // 삭제 대상 강사 — null이면 모달 미렌더링
     const [deleteTargetTeacher, setDeleteTargetTeacher] = useState<TeacherSetting | null>(null);
 
+    // 조회 모달 상태
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
     // 편집 모달 상태
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // 강사 추가 모달 상태
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-    // 편집 대상 강사 — null이면 모달 미렌더링
+    // 조회/편집 대상 강사 — null이면 모달 미렌더링
     const [selectedTeacher, setSelectedTeacher] = useState<TeacherSetting | null>(null);
 
     const [query, setQuery] = useState('');
@@ -38,6 +42,24 @@ export default function TeachersTab() {
         if (!query.trim()) return teachers;
         return teachers.filter((t) => t.name.includes(query.trim()));
     }, [teachers, query]);
+
+    // 카드 클릭 — 조회 모달 열기
+    const handleViewClick = (teacher: TeacherSetting) => {
+        setSelectedTeacher(teacher);
+        setIsViewModalOpen(true);
+    };
+
+    // 조회 모달 닫기
+    const handleViewModalClose = () => {
+        setIsViewModalOpen(false);
+        setTimeout(() => setSelectedTeacher(null), 300);
+    };
+
+    // 조회 모달에서 수정하기 버튼 → 편집 모달로 전환
+    const handleViewToEdit = () => {
+        setIsViewModalOpen(false);
+        setIsEditModalOpen(true);
+    };
 
     // 편집 버튼 클릭 — 해당 강사 데이터를 저장하고 모달 열기
     const handleEditClick = (teacher: TeacherSetting) => {
@@ -94,6 +116,7 @@ export default function TeachersTab() {
                         <TeacherCard
                             key={teacher.id}
                             teacher={teacher}
+                            onView={() => handleViewClick(teacher)}
                             onEdit={() => handleEditClick(teacher)}
                             onDelete={() => handleDeleteClick(teacher)}
                         />
@@ -113,6 +136,16 @@ export default function TeachersTab() {
                 isLoading={isDeleting}
             />
 
+            {/* 조회 모달 — 선택된 강사가 있을 때만 렌더링 */}
+            {selectedTeacher !== null && (
+                <TeacherInfoViewModal
+                    teacherData={selectedTeacher}
+                    isOpen={isViewModalOpen}
+                    onClose={handleViewModalClose}
+                    onEdit={handleViewToEdit}
+                />
+            )}
+
             {/* 편집 모달 — 편집 대상 강사가 선택됐을 때만 렌더링 (타입 안전) */}
             {selectedTeacher !== null && (
                 <TeacherInfoEditModal
@@ -130,26 +163,34 @@ export default function TeachersTab() {
 
 interface TeacherCardProps {
     teacher: TeacherSetting;
+    onView: () => void;
     onEdit: () => void;
     onDelete: () => void;
 }
 
-function TeacherCard({ teacher, onEdit, onDelete }: TeacherCardProps) {
+function TeacherCard({ teacher, onView, onEdit, onDelete }: TeacherCardProps) {
     return (
-        <div className="w-full p-4 rounded-xl bg-[#F9FAFB] border border-[#F3F4F6] flex items-center gap-2">
+        <div
+            className="w-full p-4 rounded-xl bg-[#F9FAFB] border border-[#F3F4F6] flex items-center gap-2 cursor-pointer active:bg-[#F3F4F6]"
+            onClick={onView}
+        >
             <img src={defaultImg} className="size-10 aspect-square shrink-0 rounded-full" alt={teacher.name} />
             <p className="flex flex-col gap-1 leading-none">
                 <span className="text-base font-bold text-[#1F2937]">{teacher.name}</span>
             </p>
             <div className="flex items-center gap-2 ml-auto">
                 {/* 편집 버튼 — 클릭 시 해당 강사 정보 수정 모달 오픈 */}
-                <button type="button" onClick={onEdit} className="p-1 cursor-pointer text-[#9CA3AF]">
+                <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                    className="p-1 cursor-pointer text-[#9CA3AF]"
+                >
                     <EditIcon className="size-4" />
                 </button>
                 {/* 삭제 버튼 — 클릭 시 삭제 확인 모달 오픈 */}
                 <button
                     type="button"
-                    onClick={onDelete}
+                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
                     className="p-1 cursor-pointer text-[#fd6767] active:text-[#EC1313]"
                 >
                     <Trash2Icon className="size-4" />

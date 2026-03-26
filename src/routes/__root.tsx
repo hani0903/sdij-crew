@@ -10,14 +10,19 @@
 //   - status === 'authenticated'    : 정상 렌더링
 //   - status === 'unauthenticated'  : 공개 라우트면 통과, 보호 라우트면 카카오 로그인으로
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Outlet, createRootRoute, useLocation, useNavigate } from '@tanstack/react-router';
 import { queryClient } from '../providers/query-client';
 import Header from '../components/ui/Header';
 import { useAuthStore } from '@/stores/auth.store';
 import CircularLoadingSpinner from '@/components/ui/CircularLoadingSpinner';
-import { usePushNotification } from '@/hooks/usePushNotification';
+import { usePushNotification, requestAndRegisterToken } from '@/hooks/usePushNotification';
+import type { NotificationStatus } from '@/hooks/usePushNotification';
+import {
+    NotificationPermissionBanner,
+    isNotificationBannerDismissed,
+} from '@/components/ui/NotificationPermissionBanner';
 import PageContainer from '@/components/ui/Layout/PageContainer';
 import AppLayout from '@/components/ui/Layout/AppLayout';
 import { Toaster } from 'sonner';
@@ -111,9 +116,38 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 // ─── 루트 컴포넌트 ────────────────────────────────────────────────────────────
 
 function RootComponent() {
-    // 인증 상태가 'authenticated'로 전환될 때 자동으로 푸시 알림 초기화
-    // 훅이 status를 내부적으로 구독하므로, onSuccess나 더미 컴포넌트 없이도 동작
-    usePushNotification();
+    // 인증 상태가 'authenticated'로 전환될 때 FCM 초기화.
+    // 훅이 notificationStatus를 반환하여 배너 렌더링 여부를 결정한다.
+    const { notificationStatus, setNotificationStatus } = usePushNotification();
+
+    // sessionStorage에 dismissed 상태가 있으면 배너를 처음부터 숨긴다.
+    const [isBannerVisible, setIsBannerVisible] = useState(false);
+
+    // notificationStatus가 결정된 후 dismissed 여부를 체크하여 배너 표시 결정
+    useEffect(() => {
+        if (notificationStatus === 'default' || notificationStatus === 'denied') {
+            setIsBannerVisible(!isNotificationBannerDismissed());
+        } else {
+            setIsBannerVisible(false);
+        }
+    }, [notificationStatus]);
+
+    const shouldShowBanner =
+        isBannerVisible && (notificationStatus === 'default' || notificationStatus === 'denied');
+
+    // 배너의 "알림 허용하기" 버튼 onClick에서 직접 호출되는 핸들러.
+    // user gesture 체인을 유지하기 위해 async wrapper 없이 requestAndRegisterToken을 호출한다.
+    const handleRequestPermission = async () => {
+        const result = await requestAndRegisterToken();
+        if (result != null) {
+            setNotificationStatus(result as NotificationStatus);
+        }
+        setIsBannerVisible(false);
+    };
+
+    const handleDismissBanner = () => {
+        setIsBannerVisible(false);
+    };
 
     return (
         <QueryClientProvider client={queryClient}>
@@ -131,6 +165,14 @@ function RootComponent() {
                     </div>
                 </AppLayout>
             </PageContainer>
+            {/* 알림 권한 배너: PageContainer 바깥에서 fixed 포지셔닝으로 렌더링 */}
+            {shouldShowBanner && (
+                <NotificationPermissionBanner
+                    status={notificationStatus}
+                    onRequestPermission={handleRequestPermission}
+                    onDismiss={handleDismissBanner}
+                />
+            )}
         </QueryClientProvider>
     );
 }
