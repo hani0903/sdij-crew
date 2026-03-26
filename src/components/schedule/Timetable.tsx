@@ -1,28 +1,42 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { getPeriodTime } from '../../utils/getPeriodTime';
 import type { ClassSession } from '@/types/schedule/classSession.type';
 
 export type ClassStatus = 'NORMAL' | 'CANCELLED' | 'MAKEUP';
 
-export interface TimetableProps {
-    /** 열 헤더에 표시될 교실 이름 목록 */
-    classrooms: number[];
-    /** 행 헤더에 표시될 교시 이름 목록 */
-    periods: number[];
-    /**
-     * 수업 데이터 목록 (평면 배열).
-     * 각 항목의 period + room 으로 어느 셀에 들어갈지 자동으로 결정됨.
-     * period/room 이 classrooms/periods 에 없는 항목은 무시됨.
-     */
-    data: ClassSession[];
-    /**
-     * 한 번에 보여줄 교시(행) 수. 기본값: 3
-     * 전체 교시가 6개이고 pageSize가 3이면 → 1~3교시 / 4~6교시 로 나뉨
-     */
-    pageSize?: number;
-    /** 수업 셀 클릭 시 호출되는 콜백. 빈 셀에서는 호출되지 않음 */
-    onEntryClick?: (entry: ClassSession) => void;
-}
+export type TimetableProps =
+    | {
+          /** 열 헤더에 표시될 교실 이름 목록 */
+          classrooms: number[];
+          /** 행 헤더에 표시될 교시 이름 목록 */
+          periods: number[];
+          /**
+           * 수업 데이터 목록 (평면 배열).
+           * 각 항목의 period + room 으로 어느 셀에 들어갈지 자동으로 결정됨.
+           * period/room 이 classrooms/periods 에 없는 항목은 무시됨.
+           */
+          data: ClassSession[];
+          /**
+           * 한 번에 보여줄 교시(행) 수. 기본값: 3
+           * 전체 교시가 6개이고 pageSize가 3이면 → 1~3교시 / 4~6교시 로 나뉨
+           */
+          pageSize?: number;
+          /** 수업 셀 클릭 시 호출되는 콜백. 빈 셀에서는 호출되지 않음. renderEntry와 함께 사용 불가 */
+          onEntryClick?: (entry: ClassSession) => void;
+          renderEntry?: never;
+      }
+    | {
+          classrooms: number[];
+          periods: number[];
+          data: ClassSession[];
+          pageSize?: number;
+          /**
+           * 수업 셀의 내용을 소비자가 완전히 제어하는 render prop.
+           * renderEntry가 제공되면 onEntryClick은 무시됨.
+           */
+          renderEntry: (entry: ClassSession) => ReactNode;
+          onEntryClick?: never;
+      };
 
 /* ─── 상태별 스타일 ─────────────────────────────────────────── */
 const statusCellClass: Record<ClassStatus, string> = {
@@ -47,8 +61,44 @@ function StatusBadge({ status }: { status: ClassStatus }) {
     );
 }
 
+/* ─── 기본 셀 콘텐츠 ────────────────────────────────────────── */
+interface DefaultEntryContentProps {
+    entry: ClassSession;
+    onClick?: (entry: ClassSession) => void;
+}
+
+function DefaultEntryContent({ entry, onClick }: DefaultEntryContentProps) {
+    return (
+        <div
+            onClick={() => onClick?.(entry)}
+            // absolute inset-1으로 td를 4px남기고 꽉 채움
+            className="absolute inset-1 flex flex-col gap-1.5 overflow-hidden rounded-lg bg-point/10 p-2 px-3 cursor-pointer hover:brightness-95 transition-[filter] duration-150"
+        >
+            <div className="absolute left-0 top-0 h-full w-1.5 bg-point" />
+
+            <span className="pl-1 font-pretendard text-sm font-semibold text-black leading-none">
+                {entry.teacherName}
+            </span>
+
+            {/* 과목명 + 수강반 — text-nowrap 제거, 자연 줄바꿈 허용 */}
+            <div className="pl-1 flex flex-col font-pretendard text-xs font-medium text-[#475569]">
+                <span className="text-point leading-tight break-keep">{entry.subject}</span>
+                {entry.group && <span className="font-regular text-gray-4">{entry.group}반</span>}
+            </div>
+
+            {/* 수강 인원 */}
+            <span className="pl-1 mt-auto font-pretendard text-xs font-regular text-[#0F172A] leading-tight">
+                현강 {entry.inPersonCount}
+                {entry.onlineCount > 0 && ` · 인강 ${entry.onlineCount}`}
+            </span>
+
+            <StatusBadge status={entry.status} />
+        </div>
+    );
+}
+
 /* ─── 메인 컴포넌트 ─────────────────────────────────────────── */
-export default function Timetable({ classrooms, periods, data, pageSize = 3, onEntryClick }: TimetableProps) {
+export default function Timetable({ classrooms, periods, data, pageSize = 3, onEntryClick, renderEntry }: TimetableProps) {
     /*
       페이지 상태.
       page = 0 → periods[0 ~ pageSize-1] 표시
@@ -136,37 +186,11 @@ export default function Timetable({ classrooms, periods, data, pageSize = 3, onE
                                             ].join(' ')}
                                         >
                                             {entry ? (
-                                                <div
-                                                    onClick={() => onEntryClick?.(entry)}
-                                                    // absolute inset-1으로 td를 4px남기고 꽉 채움
-                                                    className="absolute inset-1 flex flex-col gap-1.5 overflow-hidden rounded-lg bg-point/10 p-2 px-3 cursor-pointer hover:brightness-95 transition-[filter] duration-150"
-                                                >
-                                                    <div className="absolute left-0 top-0 h-full w-1.5 bg-point" />
-
-                                                    <span className="pl-1 font-pretendard text-sm font-semibold text-black leading-none">
-                                                        {entry.teacherName}
-                                                    </span>
-
-                                                    {/* 과목명 + 수강반 — text-nowrap 제거, 자연 줄바꿈 허용 */}
-                                                    <div className="pl-1 flex flex-col font-pretendard text-xs font-medium text-[#475569]">
-                                                        <span className="text-point leading-tight break-keep">
-                                                            {entry.subject}
-                                                        </span>
-                                                        {entry.group && (
-                                                            <span className="font-regular text-gray-4">
-                                                                {entry.group}반
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    {/* 수강 인원 */}
-                                                    <span className="pl-1 mt-auto font-pretendard text-xs font-regular text-[#0F172A] leading-tight">
-                                                        현강 {entry.inPersonCount}
-                                                        {entry.onlineCount > 0 && ` · 인강 ${entry.onlineCount}`}
-                                                    </span>
-
-                                                    <StatusBadge status={entry.status} />
-                                                </div>
+                                                renderEntry ? (
+                                                    renderEntry(entry)
+                                                ) : (
+                                                    <DefaultEntryContent entry={entry} onClick={onEntryClick} />
+                                                )
                                             ) : (
                                                 // 빈 셀도 절대위치로 중앙 정렬
                                                 <div className="absolute inset-1 flex items-start justify-start">
