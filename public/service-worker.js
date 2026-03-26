@@ -114,14 +114,17 @@ firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 
-// 백그라운드 메시지 수신 처리
+// 백그라운드 메시지 수신 처리 (data-only 메시지 기준)
+// 서버는 notification 필드 없이 data 필드만 보낸다.
+// payload.data = { title, body, ...기타 }
 messaging.onBackgroundMessage((payload) => {
     const { title = '알림', body = '', ...rest } = payload.data ?? {};
     const options = {
-        body: notification.body ?? '',
+        body, // payload.data.body 를 그대로 사용
         icon: '/icons/since-192x192.png',
         badge: '/icons/since-128x128.png',
         data: rest,
     };
-    self.registration.showNotification(title, options);
+    // return: Firebase compat이 Promise를 받아 SW 수명을 연장해야 알림이 표시됨
+    return self.registration.showNotification(title, options);
 });
