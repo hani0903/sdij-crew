@@ -34,6 +34,14 @@ export const classSessionService = {
     },
 
     /**
+     * 수업 일정 단건 삭제
+     * DELETE /api/v1/class-sessions/:classSessionId
+     */
+    async deleteClassSession(classSessionId: number): Promise<void> {
+        await api.delete(API_ENDPOINTS.CLASS_SESSIONS.EDIT(classSessionId));
+    },
+
+    /**
      * 이미지에서 수업 데이터 AI 추출.
      * - multipart/form-data 로 파일 전송, Content-Type 헤더는 axios가 자동 설정.
      * - AI 처리 특성상 응답이 오래 걸리므로 timeout을 60초로 개별 override.
