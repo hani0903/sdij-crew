@@ -88,24 +88,28 @@ function SettingPage() {
     const ActiveTab = TAB_COMPONENTS[tab];
 
     return (
-        <div className="relative w-full h-full flex flex-col p-4 text-gray-3 gap-4">
-            {/* 탭 네비게이션 — selectedValue가 URL search param과 동기화됨 */}
-            <SegmentedControl
-                options={TAB_OPTIONS}
-                selectedValue={tab}
-                onChange={handleTabChange}
-            />
+        <div className="w-full h-full flex flex-col text-gray-3">
+            {/* 고정 헤더 영역: SettingPage가 자체 스크롤 컨테이너를 소유하므로 sticky 불필요 */}
+            <div className="shrink-0 bg-white px-4 pt-4 pb-3 border-b border-gray-1 z-10">
+                <SegmentedControl
+                    options={TAB_OPTIONS}
+                    selectedValue={tab}
+                    onChange={handleTabChange}
+                />
+            </div>
 
-            {/* 탭 컨텐츠 — Suspense로 lazy chunk 로딩 중 스피너 표시 */}
-            <Suspense
-                fallback={
-                    <div className="w-full flex-1 flex items-center justify-center">
-                        <CircularLoadingSpinner />
-                    </div>
-                }
-            >
-                <ActiveTab />
-            </Suspense>
+            {/* 탭 컨텐츠 — 이 div가 실제 스크롤 컨테이너. 각 탭이 자체 패딩을 관리 */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+                <Suspense
+                    fallback={
+                        <div className="w-full h-full flex items-center justify-center">
+                            <CircularLoadingSpinner />
+                        </div>
+                    }
+                >
+                    <ActiveTab />
+                </Suspense>
+            </div>
         </div>
     );
 }

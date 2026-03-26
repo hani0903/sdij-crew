@@ -10,6 +10,7 @@ import TeacherInfoEditModal from './TeacherInfoEditModal';
 import TeacherCreateModal from './TeacherCreateModal';
 import { Button } from '@/components/ui/Button/Button';
 import { PlusIcon } from '@/assets';
+import defaultImg from '@/assets/icons/default-profile.svg';
 
 export default function TeachersTab() {
     // 삭제 확인 모달 상태
@@ -62,22 +63,23 @@ export default function TeachersTab() {
     };
 
     return (
-        <div className="w-full flex-1 flex flex-col items-center justify-start gap-5 text-gray-3">
-            <div className="w-full flex items-center gap-2">
+        <div className="w-full flex-1 flex flex-col text-gray-3">
+            {/* SearchInput: 스크롤 컨테이너(SettingPage content div) 기준으로 상단 고정 */}
+            <div className="sticky top-0 z-10 bg-white px-4 pt-4 pb-3 flex items-center gap-2">
                 <SearchInput value={query} placeholder="선생님 성함을 입력하세요..." onQueryChange={setQuery} />
                 {/* 강사 추가 버튼 */}
                 <Button onClick={() => setIsAddModalOpen(true)}>
                     <PlusIcon />
                 </Button>
             </div>
-            <main className="w-full flex-1 flex flex-col gap-2">
-                <div className="w-full flex items-center justify-between gap-1">
+            <main className="w-full flex flex-col gap-2 px-4 pb-10">
+                <div className="w-full flex items-center justify-between gap-1 pt-3">
                     <p className="flex items-center gap-1">
                         <span className="text-base font-bold text-[#0F172A]">강사님</span>
                         <span className="text-base font-bold text-point">{filteredTeachers.length}</span>
                     </p>
                 </div>
-                <section className="w-full flex flex-col flex-1 gap-3 overflow-y-auto pb-10">
+                <section className="w-full flex flex-col gap-3">
                     {filteredTeachers.map((teacher) => (
                         <TeacherCard
                             key={teacher.id}
@@ -151,7 +153,7 @@ interface TeacherCardProps {
 function TeacherCard({ teacher, onEdit, onDelete }: TeacherCardProps) {
     return (
         <div className="w-full p-4 rounded-xl bg-[#F9FAFB] border border-[#F3F4F6] flex items-center gap-2">
-            <img className="size-12 aspect-square shrink-0 rounded-full" alt={teacher.name} />
+            <img src={defaultImg} className="size-10 aspect-square shrink-0 rounded-full" alt={teacher.name} />
             <p className="flex flex-col gap-1 leading-none">
                 <span className="text-base font-bold text-[#1F2937]">{teacher.name}</span>
             </p>

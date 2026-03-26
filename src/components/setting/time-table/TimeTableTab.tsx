@@ -58,7 +58,7 @@ export default function TimeTableTab() {
     }
 
     return (
-        <div className="relative w-full h-full flex flex-col gap-4">
+        <div className="relative w-full h-full flex flex-col gap-4 p-4">
             <WeekDayBar selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
             {/* 시간표 본문 */}

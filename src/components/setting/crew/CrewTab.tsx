@@ -3,7 +3,7 @@
 
 export default function CrewTab() {
     return (
-        <div className="w-full flex-1 flex flex-col items-center justify-center gap-2 text-gray-3">
+        <div className="w-full flex-1 flex flex-col items-center justify-center gap-2 p-4 text-gray-3">
             <p className="text-sm">크루 관리 화면입니다.</p>
             <p className="text-xs text-gray-400">기능 구현 예정</p>
         </div>

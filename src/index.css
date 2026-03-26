@@ -79,3 +79,49 @@
         text-rendering: optimizeLegibility;
     }
 }
+
+/*
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  스크롤바 전략                                                         │
+  │                                                                      │
+  │  1. scrollbar-width: thin  — Firefox 표준 스펙 (64+)                  │
+  │  2. ::-webkit-scrollbar   — Chrome/Safari/Edge Webkit 커스텀          │
+  │  3. scrollbar-gutter: stable — layout shift 방지 (스크롤바 공간 예약) │
+  │                                                                      │
+  │  macOS는 오버레이 스크롤바라 시각적으로 거의 영향 없음.                   │
+  │  Windows 데스크탑 환경에서 주로 효과가 나타남.                            │
+  └─────────────────────────────────────────────────────────────────────┘
+*/
+
+/* layout shift 방지: 스크롤바 공간을 미리 예약 */
+html,
+body {
+    /* html/body 레벨 스크롤을 차단한다.
+       앱의 유일한 스크롤 컨테이너는 __root.tsx의 overflow-y-auto div이며,
+       이를 통해 Header·탭 sticky 고정이 의도대로 동작한다. */
+    overflow: hidden;
+    height: 100%;
+
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-300) transparent;
+}
+
+/* Chrome / Safari / Edge */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-gray-300);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-gray-400);
+}

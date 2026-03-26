@@ -121,8 +121,10 @@ function RootComponent() {
             <Toaster position="top-right" />
             <PageContainer>
                 <AppLayout>
+                    {/* Header: 스크롤 컨테이너 바깥에 위치해 항상 상단 고정 */}
                     <Header />
-                    <div className="w-full flex-col flex flex-1 min-h-0 overflow-y-auto">
+                    {/* 유일한 스크롤 컨테이너: Header 아래 남은 영역 전체를 차지하며 세로 스크롤 */}
+                    <div className="w-full flex flex-col flex-1 min-h-0 overflow-y-auto">
                         <AuthGuard>
                             <Outlet />
                         </AuthGuard>
