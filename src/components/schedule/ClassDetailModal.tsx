@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { ClassSession, ClassSessionStatus } from '@/types/schedule/classSession.type';
 import CommonNotes from './CommonNotes';
-import TeacherSettingCard from './TeacherSettingCard';
+import { TeacherInfoCard } from '@/components/teacher/TeacherInfoCard';
 import Button from '../ui/Button';
 import { useFetchAllTeachers } from '@/hooks/queries/teacher/use-fetch-all-teachers';
 
@@ -97,7 +97,7 @@ export default function ClassDetailModal({ entry, onClose }: ClassDetailModalPro
                         <CommonNotes />
                         {teacherSetting ? (
                             <div className="w-full flex flex-col">
-                                <TeacherSettingCard data={teacherSetting} />
+                                <TeacherInfoCard data={teacherSetting} />
                             </div>
                         ) : (
                             <div className="w-full flex items-center justify-center h-20 text-gray-3">
